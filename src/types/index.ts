@@ -68,6 +68,34 @@ export interface Task {
   created_at?: string;
 }
 
+export interface Owner {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  nationality: string;
+  rib: string;
+  swift: string;
+  bank: string;
+  commission_pct: number;
+  contract_start_date: string;
+  properties_count: number;
+  properties_names: string[];
+  total_payouts_mad: number;
+  status: 'actif' | 'en_attente' | 'résilié';
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: 'Gouvernante Principale' | 'Concierge de Garde' | 'Technicien Climatisation/Piscine' | 'Chauffeur VIP';
+  phone: string;
+  email: string;
+  zone: string;
+  active_tasks_count: number;
+  status: 'disponible' | 'en_mission' | 'repos';
+}
+
 export interface DashboardKPIMetrics {
   occupancyRate: number;
   occupancyTrend: number[];
