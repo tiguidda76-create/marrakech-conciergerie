@@ -9,6 +9,8 @@ import {
   BookOpenCheck, 
   CircleDollarSign, 
   ClipboardCheck, 
+  Users,
+  Settings,
   Sparkles,
   X
 } from "lucide-react";
@@ -19,8 +21,10 @@ const NAV_ITEMS = [
   { name: "Biens", href: "/biens", icon: Building2 },
   { name: "Réservations", href: "/reservations", icon: BookOpenCheck },
   { name: "Calendrier", href: "/calendrier", icon: CalendarDays },
+  { name: "Propriétaires", href: "/proprietaires", icon: Users },
   { name: "Finances", href: "/finances", icon: CircleDollarSign },
   { name: "Tâches", href: "/taches", icon: ClipboardCheck },
+  { name: "Paramètres", href: "/parametres", icon: Settings },
 ];
 
 interface SidebarProps {

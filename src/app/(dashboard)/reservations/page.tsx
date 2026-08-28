@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { MOCK_BOOKINGS } from "@/lib/mockData";
 import { formatDate, formatMAD } from "@/lib/utils";
-import { BookOpenCheck, Calendar, Filter, Plus, Search, UserCheck, Sparkles, MapPin } from "lucide-react";
+import { exportBookingsToCSV } from "@/lib/export";
+import { BookOpenCheck, Calendar, Filter, Plus, Search, UserCheck, Sparkles, MapPin, Download } from "lucide-react";
 import { Booking } from "@/types";
 
 export default function ReservationsPage() {
@@ -29,10 +30,19 @@ export default function ReservationsPage() {
           </p>
         </div>
 
-        <button className="flex items-center gap-2 px-4 py-2.5 rounded-btn bg-primary hover:bg-primary-hover text-surface-muted font-bold text-xs transition-colors shadow-lg shadow-primary/20">
-          <Plus className="w-4 h-4" />
-          Nouvelle Réservation
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => exportBookingsToCSV(bookings)}
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-btn bg-surface-elevated hover:bg-surface-border border border-surface-border text-foreground text-xs font-semibold transition-colors"
+          >
+            <Download className="w-4 h-4 text-primary" />
+            Exporter CSV
+          </button>
+          <button className="flex items-center gap-2 px-4 py-2.5 rounded-btn bg-primary hover:bg-primary-hover text-surface-muted font-bold text-xs transition-colors shadow-lg shadow-primary/20">
+            <Plus className="w-4 h-4" />
+            Nouvelle Réservation
+          </button>
+        </div>
       </div>
 
       <div className="p-4 rounded-card bg-surface border border-surface-border flex flex-col md:flex-row items-center justify-between gap-4">

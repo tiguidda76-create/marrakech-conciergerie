@@ -2,6 +2,7 @@
 
 import { MOCK_KPI_METRICS, MOCK_BOOKINGS } from "@/lib/mockData";
 import { formatDate, formatMAD } from "@/lib/utils";
+import { exportFinancialStatementToCSV } from "@/lib/export";
 import { SEASONAL_STRATEGIES, LEGAL_ENTITY } from "@/lib/constants";
 import { 
   CircleDollarSign, 
@@ -32,9 +33,12 @@ export default function FinancesPage() {
           </p>
         </div>
 
-        <button className="flex items-center gap-2 px-4 py-2.5 rounded-btn bg-primary hover:bg-primary-hover text-surface-muted font-bold text-xs transition-colors shadow-lg shadow-primary/20">
+        <button
+          onClick={() => exportFinancialStatementToCSV(MOCK_BOOKINGS)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-btn bg-primary hover:bg-primary-hover text-surface-muted font-bold text-xs transition-colors shadow-lg shadow-primary/20"
+        >
           <Download className="w-4 h-4" />
-          Exporter Facture & Bordereau (PDF / CSV)
+          Exporter Grand Livre (CSV / Excel)
         </button>
       </div>
 
