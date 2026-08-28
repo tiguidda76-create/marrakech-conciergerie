@@ -12,6 +12,7 @@ import {
   Users,
   Settings,
   Sparkles,
+  Bot,
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { name: "Biens", href: "/biens", icon: Building2 },
   { name: "Réservations", href: "/reservations", icon: BookOpenCheck },
   { name: "Calendrier", href: "/calendrier", icon: CalendarDays },
+  { name: "Équipe AI & Chat", href: "/ai-team", icon: Bot },
   { name: "Propriétaires", href: "/proprietaires", icon: Users },
   { name: "Finances", href: "/finances", icon: CircleDollarSign },
   { name: "Tâches", href: "/taches", icon: ClipboardCheck },
@@ -95,6 +97,11 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               >
                 <Icon className={cn("w-4 h-4 transition-colors", isActive ? "text-primary" : "text-muted-foreground")} />
                 <span>{item.name}</span>
+                {item.href === "/ai-team" && (
+                  <span className="ml-auto px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary/20 text-primary border border-primary/30">
+                    8 AI
+                  </span>
+                )}
               </Link>
             );
           })}
