@@ -1,0 +1,20 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/prospect-hunter",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/auditor",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/manager-radar",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/billing-officer",
+      "schedule": "0 8 1 * *"
+    }
+  ]
+}
