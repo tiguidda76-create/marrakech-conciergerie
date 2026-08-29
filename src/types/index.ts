@@ -108,3 +108,72 @@ export interface DashboardKPIMetrics {
   pendingTasksCount: number;
   conciergeRevenueMAD: number;
 }
+
+export interface MarketBenchmark {
+  id: string;
+  zone: PropertyQuartier | string;
+  property_type: PropertyType;
+  bedrooms: number;
+  avg_daily_rate: number;
+  occupancy_rate: number;
+  revpar: number;
+  active_listings_count: number;
+  source?: 'inside_airbnb' | 'scraped_competitors' | 'blended';
+  seasonality_factor?: number;
+  updated_at: string;
+}
+
+export interface CompetitorListing {
+  id: string;
+  external_id: string;
+  platform: 'airbnb' | 'booking' | 'abritel';
+  title: string;
+  zone: PropertyQuartier | string;
+  property_type?: PropertyType;
+  bedrooms?: number;
+  nightly_price: number;
+  cleaning_fee: number;
+  rating: number;
+  reviews_count: number;
+  url: string;
+  is_superhost?: boolean;
+  amenities?: string[];
+  scraped_at: string;
+}
+
+export interface PricingRecommendation {
+  id: string;
+  property_id: string;
+  recommended_price: number;
+  min_price: number;
+  max_price: number;
+  confidence_score: number;
+  reasoning: string;
+  factors: {
+    base_adr: number;
+    occupancy_modifier: number;
+    seasonality_modifier: number;
+    rating_premium: number;
+    competitor_pressure: number;
+  };
+  applied: boolean;
+  created_at: string;
+}
+
+export interface MarketOverviewMetrics {
+  localMarketADR: number;
+  globalOccupancyRate: number;
+  portfolioPositioningPct: number;
+  activeCompetitorsCount: number;
+  topPerformingZone: string;
+  suggestedAction: string;
+}
+
+export interface PricingForecastPoint {
+  date: string;
+  recommended_price: number;
+  current_price: number;
+  competitors_avg: number;
+  market_adr: number;
+  occupancy_demand_factor: number;
+}
