@@ -1,11 +1,10 @@
-import { KPICards, RevenueChart, RecentActivity, QuickActions } from "@/components/dashboard";
+import { KPICards, RevenueChart, RecentActivity, QuickActions, MarketOverviewCard } from "@/components/dashboard";
 import { MOCK_KPI_METRICS, MOCK_BOOKINGS, MOCK_TASKS, MOCK_PROPERTIES } from "@/lib/mockData";
 import { Sparkles } from "lucide-react";
 
 export default function DashboardPage() {
   return (
     <div className="space-y-6 lg:space-y-8">
-      {/* Welcome Banner */}
       <div className="p-5 sm:p-6 rounded-card bg-gradient-to-r from-surface to-surface-elevated border border-primary/25 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl relative overflow-hidden">
         <div className="space-y-1 z-10">
           <div className="flex items-center gap-2">
@@ -35,16 +34,10 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick Action Bar */}
       <QuickActions />
-
-      {/* 4 KPI Cards */}
       <KPICards metrics={MOCK_KPI_METRICS} />
-
-      {/* Revenue & Source Breakdown Charts */}
+      <MarketOverviewCard />
       <RevenueChart />
-
-      {/* Recent Activity & Operational Tasks */}
       <RecentActivity bookings={MOCK_BOOKINGS} tasks={MOCK_TASKS} />
     </div>
   );

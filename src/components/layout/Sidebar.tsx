@@ -13,6 +13,7 @@ import {
   Settings,
   Sparkles,
   Bot,
+  TrendingUp,
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,7 @@ import { cn } from "@/lib/utils";
 const NAV_ITEMS = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Biens", href: "/biens", icon: Building2 },
+  { name: "Dynamic Pricing", href: "/biens/prop-1/pricing", icon: TrendingUp },
   { name: "Réservations", href: "/reservations", icon: BookOpenCheck },
   { name: "Calendrier", href: "/calendrier", icon: CalendarDays },
   { name: "Équipe AI & Chat", href: "/ai-team", icon: Bot },
