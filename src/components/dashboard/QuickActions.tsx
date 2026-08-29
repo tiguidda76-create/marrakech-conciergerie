@@ -1,4 +1,4 @@
-import { Plus, CalendarPlus, KeyRound, Sparkles, RefreshCw } from "lucide-react";
+import { Plus, CalendarPlus, KeyRound, Sparkles, RefreshCw, BookOpen } from "lucide-react";
 import Link from "next/link";
 
 export function QuickActions() {
@@ -19,6 +19,13 @@ export function QuickActions() {
           <RefreshCw className="w-3.5 h-3.5 text-primary" />
           Sync iCal (Airbnb/Booking)
         </button>
+        <Link
+          href="/guide"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-btn bg-surface-elevated hover:bg-surface-border text-xs font-medium text-foreground border border-surface-border transition-colors"
+        >
+          <BookOpen className="w-3.5 h-3.5 text-primary" />
+          Playbook &amp; Rôles
+        </Link>
         <Link
           href="/taches"
           className="flex items-center gap-2 px-3.5 py-2 rounded-btn bg-surface-elevated hover:bg-surface-border text-xs font-medium text-foreground border border-surface-border transition-colors"

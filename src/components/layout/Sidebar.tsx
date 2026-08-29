@@ -14,6 +14,7 @@ import {
   Sparkles,
   Bot,
   TrendingUp,
+  BookOpen,
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ const NAV_ITEMS = [
   { name: "Propriétaires", href: "/proprietaires", icon: Users },
   { name: "Finances", href: "/finances", icon: CircleDollarSign },
   { name: "Tâches", href: "/taches", icon: ClipboardCheck },
+  { name: "Guide & Playbook", href: "/guide", icon: BookOpen },
   { name: "Paramètres", href: "/parametres", icon: Settings },
 ];
 
@@ -102,6 +104,11 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 {item.href === "/ai-team" && (
                   <span className="ml-auto px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary/20 text-primary border border-primary/30">
                     8 AI
+                  </span>
+                )}
+                {item.href === "/guide" && (
+                  <span className="ml-auto px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary/10 text-primary border border-primary/20">
+                    Playbook
                   </span>
                 )}
               </Link>
