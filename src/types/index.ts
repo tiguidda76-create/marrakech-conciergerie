@@ -35,11 +35,12 @@ export interface Property {
 export interface Booking {
   id: string;
   property_id: string;
-  property_name?: string;
-  property_photo?: string;
+  property_name: string;
+  property_photo: string;
   guest_name: string;
-  guest_email?: string;
+  guest_email: string;
   guest_phone?: string;
+  platform: BookingPlatform;
   check_in: string;
   check_out: string;
   nights: number;
@@ -47,7 +48,6 @@ export interface Booking {
   total_mad: number;
   tourist_tax_mad: number;
   commission_pct: number;
-  platform: BookingPlatform;
   status: BookingStatus;
   notes?: string;
   created_at: string;
@@ -62,10 +62,9 @@ export interface Task {
   scheduled_at: string;
   assigned_to?: string;
   status: TaskStatus;
-  priority?: TaskPriority;
+  priority: TaskPriority;
   turnaround_hours?: number;
   notes?: string;
-  created_at?: string;
 }
 
 export interface Owner {
@@ -73,27 +72,27 @@ export interface Owner {
   name: string;
   email: string;
   phone: string;
-  nationality: string;
-  rib: string;
-  swift: string;
-  bank: string;
+  nationality?: string;
+  rib?: string;
+  swift?: string;
+  bank?: string;
   commission_pct: number;
   contract_start_date: string;
   properties_count: number;
   properties_names: string[];
   total_payouts_mad: number;
-  status: 'actif' | 'en_attente' | 'résilié';
+  status: 'actif' | 'inactif' | 'en_attente';
 }
 
 export interface TeamMember {
   id: string;
   name: string;
-  role: 'Gouvernante Principale' | 'Concierge de Garde' | 'Technicien Climatisation/Piscine' | 'Chauffeur VIP';
+  role: string;
   phone: string;
-  email: string;
+  email?: string;
   zone: string;
   active_tasks_count: number;
-  status: 'disponible' | 'en_mission' | 'repos';
+  status: 'disponible' | 'en_mission' | 'indisponible';
 }
 
 export interface DashboardKPIMetrics {
@@ -109,33 +108,39 @@ export interface DashboardKPIMetrics {
   conciergeRevenueMAD: number;
 }
 
+export interface RevenueBySource {
+  source: string;
+  amountMAD: number;
+  percentage: number;
+  color: string;
+}
+
 export interface MarketBenchmark {
   id: string;
   zone: PropertyQuartier | string;
-  property_type: PropertyType;
+  property_type: PropertyType | string;
   bedrooms: number;
-  avg_daily_rate: number;
-  occupancy_rate: number;
-  revpar: number;
+  avg_daily_rate: number; // ADR en MAD
+  occupancy_rate: number; // %
+  revpar: number; // MAD
   active_listings_count: number;
-  source?: 'inside_airbnb' | 'scraped_competitors' | 'blended';
-  seasonality_factor?: number;
   updated_at: string;
 }
 
 export interface CompetitorListing {
   id: string;
   external_id: string;
-  platform: 'airbnb' | 'booking' | 'abritel';
+  platform: BookingPlatform | 'airbnb' | 'booking';
   title: string;
   zone: PropertyQuartier | string;
-  property_type?: PropertyType;
+  property_type?: PropertyType | string;
   bedrooms?: number;
-  nightly_price: number;
-  cleaning_fee: number;
+  nightly_price: number; // MAD
+  cleaning_fee: number; // MAD
   rating: number;
   reviews_count: number;
   url: string;
+  photo_url?: string;
   is_superhost?: boolean;
   amenities?: string[];
   scraped_at: string;
@@ -144,10 +149,10 @@ export interface CompetitorListing {
 export interface PricingRecommendation {
   id: string;
   property_id: string;
-  recommended_price: number;
-  min_price: number;
-  max_price: number;
-  confidence_score: number;
+  recommended_price: number; // MAD
+  min_price: number; // MAD floor
+  max_price: number; // MAD ceiling
+  confidence_score: number; // 0-100%
   reasoning: string;
   factors: {
     base_adr: number;
@@ -161,9 +166,9 @@ export interface PricingRecommendation {
 }
 
 export interface MarketOverviewMetrics {
-  localMarketADR: number;
-  globalOccupancyRate: number;
-  portfolioPositioningPct: number;
+  localMarketADR: number; // MAD
+  globalOccupancyRate: number; // %
+  portfolioPositioningPct: number; // % (+12% vs market)
   activeCompetitorsCount: number;
   topPerformingZone: string;
   suggestedAction: string;
@@ -176,4 +181,30 @@ export interface PricingForecastPoint {
   competitors_avg: number;
   market_adr: number;
   occupancy_demand_factor: number;
+}
+
+export type OutreachStatus = 'nouveau' | 'contacte' | 'rendez_vous' | 'mandat_signe' | 'archive';
+
+export interface ProspectLead {
+  id: string;
+  title: string;
+  zone: PropertyQuartier | string;
+  property_type: PropertyType;
+  bedrooms: number;
+  nightly_price: number; // Prix actuel constaté (MAD)
+  estimated_adr: number; // Prix optimisé potentiel (MAD)
+  estimated_gain_annual_mad: number; // Gain additionnel net estimé (MAD/an)
+  rating: number;
+  reviews_count: number;
+  platform: BookingPlatform | 'airbnb' | 'booking' | 'direct';
+  url: string;
+  owner_name?: string;
+  owner_contact?: string; // Téléphone, WhatsApp ou email
+  outreach_status: OutreachStatus;
+  opportunity_score: number; // 0 à 100
+  audit_notes: string[];
+  suggested_message_whatsapp: string;
+  suggested_message_email: string;
+  last_contacted_at?: string;
+  created_at: string;
 }
