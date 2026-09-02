@@ -26,7 +26,8 @@ import {
 import { ProspectLead, PropertyQuartier, OutreachStatus } from "@/types";
 import { formatMAD } from "@/lib/utils";
 
-const MARRAKECH_ZONES: { id: PropertyQuartier; label: string }[] = [
+const MARRAKECH_ZONES: { id: PropertyQuartier | "all"; label: string }[] = [
+  { id: "all", label: "🌍 Tout Marrakech (Mass Prospection Multi-Zones)" },
   { id: "medina", label: "Médina (Riads & Maisons d'Hôtes)" },
   { id: "palmeraie", label: "Palmeraie (Villas & Domaines)" },
   { id: "gueliz", label: "Guéliz (Appartements & Penthouses)" },
@@ -38,7 +39,7 @@ export default function ProspectsPage() {
   const [leads, setLeads] = useState<ProspectLead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
-  const [selectedZone, setSelectedZone] = useState<PropertyQuartier>("medina");
+  const [selectedZone, setSelectedZone] = useState<PropertyQuartier | "all">("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [activeModalLead, setActiveModalLead] = useState<ProspectLead | null>(null);
   const [copiedType, setCopiedType] = useState<"whatsapp" | "email" | null>(null);
@@ -70,7 +71,7 @@ export default function ProspectsPage() {
       const res = await fetch("/api/prospects/hunt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ zone: selectedZone, limit: 6 }),
+        body: JSON.stringify({ zone: selectedZone, limit: selectedZone === "all" ? 15 : 6 }),
       });
 
       if (res.ok) {

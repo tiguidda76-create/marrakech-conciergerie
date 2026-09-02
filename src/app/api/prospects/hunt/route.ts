@@ -8,10 +8,10 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const zone: PropertyQuartier = body.zone || "medina";
-    const limit = Number(body.limit) || 6;
+    const zone: PropertyQuartier | "all" = body.zone || "all";
+    const limit = Number(body.limit) || (zone === "all" ? 15 : 6);
 
-    // Scan en direct via Prospect Hunter
+    // Scan en direct via Prospect Hunter (Multi-Zones ou Zone Ciblée)
     const leads = await RealProspectHunterService.huntProspects(zone, limit);
 
     // Sauvegarde dans Supabase si connecté

@@ -25,9 +25,24 @@ const BENCHMARK_RATES: Record<string, { adr: number; targetOccupancy: number }> 
 
 export class RealProspectHunterService {
   /**
-   * Scanne en direct les biens d'un quartier pour identifier des opportunités de mandat
+   * Scanne en direct les biens d'un quartier ou de tout Marrakech (Mass Prospection)
    */
-  public static async huntProspects(zone: PropertyQuartier = "medina", limit: number = 6): Promise<ProspectLead[]> {
+  public static async huntProspects(zone: PropertyQuartier | "all" = "all", limit: number = 6): Promise<ProspectLead[]> {
+    if (zone === "all") {
+      const allZones: PropertyQuartier[] = ["medina", "palmeraie", "gueliz", "hivernage", "targa"];
+      const perZoneLimit = Math.max(2, Math.ceil(limit / allZones.length));
+      
+      const zoneResults = await Promise.all(
+        allZones.map(z => this.huntSingleZone(z, perZoneLimit))
+      );
+
+      return zoneResults.flat().sort((a, b) => b.opportunity_score - a.opportunity_score);
+    }
+
+    return this.huntSingleZone(zone, limit);
+  }
+
+  private static async huntSingleZone(zone: PropertyQuartier, limit: number): Promise<ProspectLead[]> {
     // 1. Scraping des annonces réelles via le scraper
     const scrapedListings = await CompetitorScraperService.scrapeCompetitors({
       zone,
