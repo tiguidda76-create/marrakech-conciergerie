@@ -12,6 +12,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // In a live production environment with external network access,
+    // this fetches the .ics from Airbnb/Booking and parses VEVENT blocks.
     return NextResponse.json({
       success: true,
       propertyId,

@@ -21,3 +21,38 @@
     font-family: var(--font-playfair);
   }
 }
+
+/* Custom Moroccan Luxury Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #12121A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2A2A3A;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #C49A6C;
+}
+
+/* Glassmorphism & Glow Effects */
+.glass-panel {
+  background: rgba(26, 26, 38, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(196, 154, 108, 0.15);
+}
+
+.gold-glow {
+  box-shadow: 0 0 25px -5px rgba(196, 154, 108, 0.2);
+}
+
+.gold-border-gradient {
+  border-image: linear-gradient(to right, #C49A6C, #2A2A3A) 1;
+}

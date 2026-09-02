@@ -35,12 +35,11 @@ export interface Property {
 export interface Booking {
   id: string;
   property_id: string;
-  property_name: string;
-  property_photo: string;
+  property_name?: string;
+  property_photo?: string;
   guest_name: string;
-  guest_email: string;
+  guest_email?: string;
   guest_phone?: string;
-  platform: BookingPlatform;
   check_in: string;
   check_out: string;
   nights: number;
@@ -48,6 +47,7 @@ export interface Booking {
   total_mad: number;
   tourist_tax_mad: number;
   commission_pct: number;
+  platform: BookingPlatform;
   status: BookingStatus;
   notes?: string;
   created_at: string;
@@ -62,9 +62,10 @@ export interface Task {
   scheduled_at: string;
   assigned_to?: string;
   status: TaskStatus;
-  priority: TaskPriority;
+  priority?: TaskPriority;
   turnaround_hours?: number;
   notes?: string;
+  created_at?: string;
 }
 
 export interface Owner {
@@ -72,27 +73,27 @@ export interface Owner {
   name: string;
   email: string;
   phone: string;
-  nationality?: string;
-  rib?: string;
-  swift?: string;
-  bank?: string;
+  nationality: string;
+  rib: string;
+  swift: string;
+  bank: string;
   commission_pct: number;
   contract_start_date: string;
   properties_count: number;
   properties_names: string[];
   total_payouts_mad: number;
-  status: 'actif' | 'inactif' | 'en_attente';
+  status: 'actif' | 'en_attente' | 'résilié';
 }
 
 export interface TeamMember {
   id: string;
   name: string;
-  role: string;
+  role: 'Gouvernante Principale' | 'Concierge de Garde' | 'Technicien Climatisation/Piscine' | 'Chauffeur VIP';
   phone: string;
-  email?: string;
+  email: string;
   zone: string;
   active_tasks_count: number;
-  status: 'disponible' | 'en_mission' | 'indisponible';
+  status: 'disponible' | 'en_mission' | 'repos';
 }
 
 export interface DashboardKPIMetrics {
@@ -108,39 +109,33 @@ export interface DashboardKPIMetrics {
   conciergeRevenueMAD: number;
 }
 
-export interface RevenueBySource {
-  source: string;
-  amountMAD: number;
-  percentage: number;
-  color: string;
-}
-
 export interface MarketBenchmark {
   id: string;
   zone: PropertyQuartier | string;
-  property_type: PropertyType | string;
+  property_type: PropertyType;
   bedrooms: number;
   avg_daily_rate: number; // ADR en MAD
-  occupancy_rate: number; // %
-  revpar: number; // MAD
+  occupancy_rate: number; // % (ex: 78.5)
+  revpar: number; // RevPAR en MAD = ADR * (occupancy_rate / 100)
   active_listings_count: number;
+  source?: 'inside_airbnb' | 'scraped_competitors' | 'blended';
+  seasonality_factor?: number;
   updated_at: string;
 }
 
 export interface CompetitorListing {
   id: string;
   external_id: string;
-  platform: BookingPlatform | 'airbnb' | 'booking';
+  platform: 'airbnb' | 'booking' | 'abritel';
   title: string;
   zone: PropertyQuartier | string;
-  property_type?: PropertyType | string;
+  property_type?: PropertyType;
   bedrooms?: number;
-  nightly_price: number; // MAD
-  cleaning_fee: number; // MAD
-  rating: number;
+  nightly_price: number; // en MAD
+  cleaning_fee: number; // en MAD
+  rating: number; // ex: 4.92
   reviews_count: number;
   url: string;
-  photo_url?: string;
   is_superhost?: boolean;
   amenities?: string[];
   scraped_at: string;
@@ -208,3 +203,5 @@ export interface ProspectLead {
   last_contacted_at?: string;
   created_at: string;
 }
+
+

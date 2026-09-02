@@ -19,14 +19,31 @@ import {
   Percent
 } from "lucide-react";
 
+const STORAGE_KEY_PROPERTIES = 'mc_real_properties_v1';
+
 export default function BiensPage() {
-  const [properties, setProperties] = useState<Property[]>(MOCK_PROPERTIES);
+  const [properties, setProperties] = useState<Property[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_PROPERTIES);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [];
+  });
+
   const [filterType, setFilterType] = useState<string>("all");
   const [filterQuartier, setFilterQuartier] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"revenue_desc" | "occupancy_desc" | "occupancy_asc" | "name_asc">("revenue_desc");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
+  // New Property Form State
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState<PropertyType>("riad");
   const [newQuartier, setNewQuartier] = useState<PropertyQuartier>("medina");
@@ -83,6 +100,7 @@ export default function BiensPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-2xl font-bold text-foreground">Gestion des Biens & Riads</h1>
@@ -100,9 +118,12 @@ export default function BiensPage() {
         </button>
       </div>
 
+      {/* Filter and Sort Toolbar */}
       <div className="p-4 rounded-card bg-surface border border-surface-border flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-muted-foreground font-semibold uppercase text-[10px]">Filtres :</span>
+          
+          {/* Quartier Filter */}
           <select
             value={filterQuartier}
             onChange={(e) => setFilterQuartier(e.target.value)}
@@ -116,6 +137,8 @@ export default function BiensPage() {
             <option value="targa">Targa</option>
             <option value="autre">Autre / Amelkis</option>
           </select>
+
+          {/* Type Filter */}
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
@@ -128,6 +151,8 @@ export default function BiensPage() {
             <option value="studio">Studio</option>
             <option value="duplex">Duplex</option>
           </select>
+
+          {/* Status Filter */}
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
@@ -140,6 +165,7 @@ export default function BiensPage() {
           </select>
         </div>
 
+        {/* Sort Controls */}
         <div className="flex items-center gap-2">
           <ArrowUpDown className="w-3.5 h-3.5 text-primary" />
           <span className="text-muted-foreground">Trier par :</span>
@@ -156,12 +182,34 @@ export default function BiensPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProperties.map((prop) => (
+      {/* Property Cards Grid / Empty State */}
+      {filteredProperties.length === 0 ? (
+        <div className="p-12 text-center rounded-card bg-surface border border-surface-border space-y-4">
+          <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center mx-auto">
+            <Building2 className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-foreground">Aucun bien sous gestion pour le moment</h3>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1">
+              Votre parc est propre et prêt. Enregistrez votre premier Riad ou Villa pour activer le suivi d&apos;occupation, le calcul des commissions et le Pricing IA.
+            </p>
+          </div>
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover text-surface-muted rounded-btn text-xs font-bold transition-colors shadow-lg shadow-primary/20"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Ajouter Votre Premier Bien Réel</span>
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProperties.map((prop) => (
           <div
             key={prop.id}
             className="rounded-card bg-surface border border-surface-border overflow-hidden hover:border-primary/40 transition-all duration-300 shadow-xl flex flex-col group"
           >
+            {/* Image + Badges */}
             <div className="relative h-48 w-full bg-surface-elevated overflow-hidden">
               <img
                 src={prop.photos[0] || "https://images.unsplash.com/photo-1590073844006-33379778ae09?auto=format&fit=crop&w=1200&q=80"}
@@ -187,6 +235,7 @@ export default function BiensPage() {
               </div>
             </div>
 
+            {/* Details */}
             <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
               <div>
                 <div className="flex items-center gap-1.5 text-xs text-primary font-medium mb-1">
@@ -196,6 +245,7 @@ export default function BiensPage() {
                 <h3 className="font-serif text-base font-bold text-foreground line-clamp-1">{prop.name}</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">Propriétaire: {prop.owner_name || "Mandat Privé"}</p>
 
+                {/* Specs */}
                 <div className="flex items-center gap-4 mt-3 pt-3 border-t border-surface-border text-xs text-muted-foreground">
                   <div className="flex items-center gap-1.5">
                     <BedDouble className="w-3.5 h-3.5 text-primary" />
@@ -211,6 +261,7 @@ export default function BiensPage() {
                   </div>
                 </div>
 
+                {/* Occupancy Progress Bar */}
                 <div className="mt-3.5 pt-3 border-t border-surface-border/60">
                   <div className="flex items-center justify-between text-xs mb-1">
                     <span className="text-muted-foreground font-medium">Taux d&apos;Occupation</span>
@@ -225,6 +276,7 @@ export default function BiensPage() {
                 </div>
               </div>
 
+              {/* Pricing & Monthly Revenue */}
               <div className="pt-3 border-t border-surface-border flex items-center justify-between">
                 <div>
                   <span className="text-[10px] text-muted-foreground uppercase font-semibold">Tarif de base</span>
@@ -235,11 +287,23 @@ export default function BiensPage() {
                   <p className="text-xs font-bold text-primary">{formatMAD(prop.monthly_revenue_mad || 0, false)}</p>
                 </div>
               </div>
+
+              {/* Dynamic Pricing CTA */}
+              <a
+                href={`/biens/${prop.id}/pricing`}
+                className="w-full py-2 px-3 rounded-btn bg-surface-elevated hover:bg-primary hover:text-surface-muted text-foreground text-xs font-semibold border border-surface-border transition-all flex items-center justify-center gap-1.5 shadow-sm group"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-primary group-hover:text-surface-muted transition-colors" />
+                <span>Optimiser le Tarif (Pricing IA)</span>
+              </a>
             </div>
           </div>
         ))}
       </div>
+      )}
 
+
+      {/* Add Property Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-lg rounded-card bg-surface border border-surface-border shadow-2xl p-6 space-y-4">

@@ -25,8 +25,8 @@ export async function createBookingAction(data: {
     property_id: data.property_id,
     property_name: data.property_name,
     guest_name: data.guest_name,
-    guest_email: data.guest_email,
-    guest_phone: data.guest_phone,
+    guest_email: data.guest_email || "",
+    guest_phone: data.guest_phone || "",
     platform: data.platform,
     check_in: data.check_in,
     check_out: data.check_out,
@@ -36,7 +36,7 @@ export async function createBookingAction(data: {
     tourist_tax_mad,
     commission_pct: 25,
     status: "confirmed",
-    notes: data.notes,
+    notes: data.notes || "",
     created_at: new Date().toISOString(),
   };
 

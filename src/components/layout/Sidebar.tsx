@@ -15,6 +15,7 @@ import {
   Bot,
   TrendingUp,
   BookOpen,
+  Target,
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Biens", href: "/biens", icon: Building2 },
   { name: "Dynamic Pricing", href: "/biens/prop-1/pricing", icon: TrendingUp },
+  { name: "Chasse & Prospection", href: "/prospects", icon: Target },
   { name: "Réservations", href: "/reservations", icon: BookOpenCheck },
   { name: "Calendrier", href: "/calendrier", icon: CalendarDays },
   { name: "Équipe AI & Chat", href: "/ai-team", icon: Bot },
@@ -32,6 +34,9 @@ const NAV_ITEMS = [
   { name: "Guide & Playbook", href: "/guide", icon: BookOpen },
   { name: "Paramètres", href: "/parametres", icon: Settings },
 ];
+
+
+
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -43,6 +48,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
   return (
     <>
+      {/* Mobile Backdrop */}
       {isOpen && (
         <div
           onClick={onClose}
@@ -50,12 +56,14 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         />
       )}
 
+      {/* Sidebar Container */}
       <aside
         className={cn(
           "w-64 bg-surface border-r border-surface-border flex flex-col h-screen fixed lg:sticky top-0 z-50 transition-transform duration-300 select-none",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
+        {/* Brand Header */}
         <div className="p-5 border-b border-surface-border flex items-center justify-between">
           <Link href="/" onClick={onClose} className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center shadow-lg shadow-primary/25 group-hover:scale-105 transition-transform">
@@ -71,6 +79,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             </div>
           </Link>
 
+          {/* Close button for mobile */}
           <button
             onClick={onClose}
             aria-label="Fermer le menu"
@@ -80,6 +89,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           </button>
         </div>
 
+        {/* Navigation Links */}
         <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
           <div className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Navigation Principale
@@ -106,16 +116,12 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                     8 AI
                   </span>
                 )}
-                {item.href === "/guide" && (
-                  <span className="ml-auto px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary/10 text-primary border border-primary/20">
-                    Playbook
-                  </span>
-                )}
               </Link>
             );
           })}
         </nav>
 
+        {/* Commission & Tourism Tax Info Badge */}
         <div className="p-4 border-t border-surface-border">
           <div className="p-3 rounded-xl bg-gradient-to-br from-surface-elevated to-surface border border-primary/20 text-xs">
             <div className="flex items-center justify-between font-semibold text-foreground mb-1">

@@ -1,0 +1,8 @@
+{
+  "rules": [
+    "Always adhere to agent.md design tokens and tech stack",
+    "Dates must be in DD/MM/YYYY format with Africa/Casablanca timezone",
+    "Monetary values in Moroccan Dirhams (MAD) with EUR conversion",
+    "Ensure TypeScript zero-error compilation"
+  ]
+}

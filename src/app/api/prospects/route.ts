@@ -18,6 +18,7 @@ export async function GET() {
       }
     }
 
+    // Fallback scan initial si table vide
     const initialLeads = await RealProspectHunterService.huntProspects("medina", 6);
     return NextResponse.json({ success: true, count: initialLeads.length, leads: initialLeads });
   } catch (error) {

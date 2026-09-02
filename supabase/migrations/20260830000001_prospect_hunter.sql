@@ -9,18 +9,18 @@ CREATE TYPE outreach_status_type AS ENUM ('nouveau', 'contacte', 'rendez_vous', 
 CREATE TABLE IF NOT EXISTS prospect_leads (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title VARCHAR(255) NOT NULL,
-  zone VARCHAR(50) NOT NULL,
+  zone VARCHAR(50) NOT NULL, -- medina, gueliz, hivernage, palmeraie, targa, autre
   property_type VARCHAR(50) NOT NULL DEFAULT 'riad',
   bedrooms INT NOT NULL DEFAULT 1,
-  nightly_price NUMERIC(10,2) NOT NULL,
-  estimated_adr NUMERIC(10,2) NOT NULL,
-  estimated_gain_annual_mad NUMERIC(12,2) NOT NULL,
+  nightly_price NUMERIC(10,2) NOT NULL, -- Prix actuel constaté en MAD
+  estimated_adr NUMERIC(10,2) NOT NULL, -- Prix potentiel optimisé en MAD
+  estimated_gain_annual_mad NUMERIC(12,2) NOT NULL, -- Gain annuel estimé pour le propriétaire
   rating NUMERIC(3,2) DEFAULT 4.75,
   reviews_count INT DEFAULT 0,
   platform VARCHAR(30) DEFAULT 'airbnb',
   url TEXT NOT NULL,
   owner_name VARCHAR(150),
-  owner_contact VARCHAR(100),
+  owner_contact VARCHAR(100), -- Numéro WhatsApp ou Email
   outreach_status outreach_status_type DEFAULT 'nouveau',
   opportunity_score INT NOT NULL CHECK (opportunity_score BETWEEN 0 AND 100),
   audit_notes TEXT[] DEFAULT '{}',
@@ -31,10 +31,12 @@ CREATE TABLE IF NOT EXISTS prospect_leads (
   CONSTRAINT unique_prospect_url UNIQUE(url)
 );
 
+-- Index pour requêtes CRM rapides
 CREATE INDEX IF NOT EXISTS idx_prospect_leads_zone ON prospect_leads(zone, outreach_status);
 CREATE INDEX IF NOT EXISTS idx_prospect_leads_score ON prospect_leads(opportunity_score DESC);
 CREATE INDEX IF NOT EXISTS idx_prospect_leads_gain ON prospect_leads(estimated_gain_annual_mad DESC);
 
+-- RLS Security
 ALTER TABLE prospect_leads ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow authenticated read prospect_leads" ON prospect_leads

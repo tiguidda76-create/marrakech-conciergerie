@@ -4,32 +4,34 @@
 -- Conciergerie Privée Marrakech
 -- ==============================================================================
 
+-- 1. Table des Benchmarks de Marché (Agrégations Macro & Quartiers)
 CREATE TABLE IF NOT EXISTS market_benchmarks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  zone VARCHAR(50) NOT NULL,
-  property_type VARCHAR(50) NOT NULL,
+  zone VARCHAR(50) NOT NULL, -- medina, gueliz, hivernage, palmeraie, targa, autre
+  property_type VARCHAR(50) NOT NULL, -- riad, villa, appartement, studio, duplex
   bedrooms INT NOT NULL DEFAULT 1,
-  avg_daily_rate NUMERIC(10,2) NOT NULL,
-  occupancy_rate NUMERIC(5,2) NOT NULL,
-  revpar NUMERIC(10,2) GENERATED ALWAYS AS (avg_daily_rate * (occupancy_rate / 100.0)) STORED,
+  avg_daily_rate NUMERIC(10,2) NOT NULL, -- ADR en Dirhams (MAD)
+  occupancy_rate NUMERIC(5,2) NOT NULL, -- Taux d'occupation médian (%)
+  revpar NUMERIC(10,2) GENERATED ALWAYS AS (avg_daily_rate * (occupancy_rate / 100.0)) STORED, -- RevPAR
   active_listings_count INT NOT NULL DEFAULT 0,
-  seasonality_factor NUMERIC(4,2) DEFAULT 1.0,
-  source VARCHAR(50) DEFAULT 'inside_airbnb',
+  seasonality_factor NUMERIC(4,2) DEFAULT 1.0, -- Facteur saisonnier (ex: 1.35 en haute saison)
+  source VARCHAR(50) DEFAULT 'inside_airbnb', -- inside_airbnb, scraped_competitors, blended
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   CONSTRAINT unique_market_benchmark UNIQUE(zone, property_type, bedrooms)
 );
 
+-- 2. Table des Listings Concurrents Scrapés en Temps Réel (Firecrawl API)
 CREATE TABLE IF NOT EXISTS competitor_listings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  external_id VARCHAR(100) NOT NULL,
-  platform VARCHAR(30) NOT NULL,
+  external_id VARCHAR(100) NOT NULL, -- ID Airbnb/Booking
+  platform VARCHAR(30) NOT NULL, -- airbnb, booking, abritel
   title VARCHAR(255) NOT NULL,
   zone VARCHAR(50) NOT NULL,
   property_type VARCHAR(50),
   bedrooms INT DEFAULT 1,
-  nightly_price NUMERIC(10,2) NOT NULL,
-  cleaning_fee NUMERIC(10,2) DEFAULT 0,
-  rating NUMERIC(3,2) DEFAULT 4.80,
+  nightly_price NUMERIC(10,2) NOT NULL, -- Prix par nuitée en MAD
+  cleaning_fee NUMERIC(10,2) DEFAULT 0, -- Frais de ménage en MAD
+  rating NUMERIC(3,2) DEFAULT 4.80, -- Note moyenne (/5)
   reviews_count INT DEFAULT 0,
   url TEXT NOT NULL,
   is_superhost BOOLEAN DEFAULT false,
@@ -38,52 +40,69 @@ CREATE TABLE IF NOT EXISTS competitor_listings (
   scraped_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 3. Table des Recommandations Tarifaires Dynamiques
 CREATE TABLE IF NOT EXISTS pricing_recommendations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
-  recommended_price NUMERIC(10,2) NOT NULL,
-  min_price NUMERIC(10,2) NOT NULL,
-  max_price NUMERIC(10,2) NOT NULL,
-  confidence_score INT NOT NULL CHECK (confidence_score BETWEEN 0 AND 100),
-  reasoning TEXT NOT NULL,
-  factors JSONB DEFAULT '{}'::jsonb,
-  applied BOOLEAN DEFAULT false,
+  recommended_price NUMERIC(10,2) NOT NULL, -- Tarif optimal calculé en MAD
+  min_price NUMERIC(10,2) NOT NULL, -- Prix plancher sécurisé (MAD)
+  max_price NUMERIC(10,2) NOT NULL, -- Prix plafond haute demande (MAD)
+  confidence_score INT NOT NULL CHECK (confidence_score BETWEEN 0 AND 100), -- Indice de confiance %
+  reasoning TEXT NOT NULL, -- Justification IA & analytique
+  factors JSONB DEFAULT '{}'::jsonb, -- Détail des multiplicateurs (ADR, occupation, saison, rating)
+  applied BOOLEAN DEFAULT false, -- Indique si le tarif a été synchronisé vers le calendrier
   applied_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- ==============================================================================
+-- INDEX POUR PERFORMANCES MAXIMALES (Requêtes par Quartier et Type)
+-- ==============================================================================
 CREATE INDEX IF NOT EXISTS idx_market_benchmarks_zone_type ON market_benchmarks(zone, property_type, bedrooms);
 CREATE INDEX IF NOT EXISTS idx_competitor_listings_zone_platform ON competitor_listings(zone, platform, nightly_price);
 CREATE INDEX IF NOT EXISTS idx_competitor_listings_scraped_at ON competitor_listings(scraped_at DESC);
 CREATE INDEX IF NOT EXISTS idx_pricing_recommendations_property ON pricing_recommendations(property_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_pricing_recommendations_applied ON pricing_recommendations(applied);
 
+-- ==============================================================================
+-- SÉCURITÉ ROW LEVEL SECURITY (RLS)
+-- ==============================================================================
 ALTER TABLE market_benchmarks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE competitor_listings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pricing_recommendations ENABLE ROW LEVEL SECURITY;
 
+-- Politiques de lecture et écriture pour les utilisateurs authentifiés
 CREATE POLICY "Allow authenticated read market_benchmarks" ON market_benchmarks
   FOR SELECT TO authenticated USING (true);
+
 CREATE POLICY "Allow authenticated manage market_benchmarks" ON market_benchmarks
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 CREATE POLICY "Allow authenticated read competitor_listings" ON competitor_listings
   FOR SELECT TO authenticated USING (true);
+
 CREATE POLICY "Allow authenticated manage competitor_listings" ON competitor_listings
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 CREATE POLICY "Allow authenticated read pricing_recommendations" ON pricing_recommendations
   FOR SELECT TO authenticated USING (true);
+
 CREATE POLICY "Allow authenticated manage pricing_recommendations" ON pricing_recommendations
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
+-- Politiques Service Role (pour Cron Jobs et Scraper Background)
 CREATE POLICY "Allow service_role full market_benchmarks" ON market_benchmarks
   FOR ALL TO service_role USING (true) WITH CHECK (true);
+
 CREATE POLICY "Allow service_role full competitor_listings" ON competitor_listings
   FOR ALL TO service_role USING (true) WITH CHECK (true);
+
 CREATE POLICY "Allow service_role full pricing_recommendations" ON pricing_recommendations
   FOR ALL TO service_role USING (true) WITH CHECK (true);
 
+-- ==============================================================================
+-- SEED DATA INITIAL POUR LES QUARTIERS DE MARRAKECH (MAD)
+-- ==============================================================================
 INSERT INTO market_benchmarks (zone, property_type, bedrooms, avg_daily_rate, occupancy_rate, active_listings_count, seasonality_factor, source)
 VALUES
   ('medina', 'riad', 5, 4200.00, 84.5, 480, 1.25, 'inside_airbnb'),

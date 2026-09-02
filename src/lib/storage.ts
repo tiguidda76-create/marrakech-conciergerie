@@ -27,6 +27,7 @@ export async function uploadFileToStorage(
       });
 
     if (error) {
+      // Fallback url for demo
       return {
         success: true,
         publicUrl: `https://images.unsplash.com/photo-1590073844006-33379778ae09?auto=format&fit=crop&w=1200&q=80`,

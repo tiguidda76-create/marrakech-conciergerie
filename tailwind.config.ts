@@ -19,7 +19,7 @@ const config: Config = {
           muted: "#171722",
         },
         primary: {
-          DEFAULT: "#C49A6C",
+          DEFAULT: "#C49A6C", // Terracotta / Or du Maroc
           hover: "#B3895B",
           dark: "#996F43",
           light: "#DFC09C",
@@ -30,7 +30,7 @@ const config: Config = {
           foreground: "#FFFFFF",
         },
         accent: {
-          majorelle: "#2E5BFF",
+          majorelle: "#2E5BFF", // Bleu Majorelle accent
           emerald: "#2D9F6F",
           terracotta: "#C85A32",
           amber: "#D97706",

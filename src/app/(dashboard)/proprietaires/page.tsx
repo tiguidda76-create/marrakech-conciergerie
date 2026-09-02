@@ -28,6 +28,7 @@ export default function ProprietairesPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedOwnerForPayouts, setSelectedOwnerForPayouts] = useState<Owner | null>(null);
 
+  // New Owner Form State
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newPhone, setNewPhone] = useState("");
@@ -78,6 +79,7 @@ export default function ProprietairesPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-2xl font-bold text-foreground">Gestion des Propriétaires & Mandats</h1>
@@ -95,6 +97,7 @@ export default function ProprietairesPage() {
         </button>
       </div>
 
+      {/* KPI Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-5 rounded-card bg-surface border border-surface-border shadow-lg">
           <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold uppercase mb-2">
@@ -124,6 +127,7 @@ export default function ProprietairesPage() {
         </div>
       </div>
 
+      {/* Filter and Search Bar */}
       <div className="p-4 rounded-card bg-surface border border-surface-border flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -151,6 +155,7 @@ export default function ProprietairesPage() {
         </div>
       </div>
 
+      {/* Owners Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredOwners.map((owner) => (
           <div
@@ -174,6 +179,7 @@ export default function ProprietairesPage() {
                 </span>
               </div>
 
+              {/* Contact Info */}
               <div className="space-y-1.5 text-xs text-muted-foreground pt-2 border-t border-surface-border">
                 <div className="flex items-center gap-2 text-foreground">
                   <Mail className="w-3.5 h-3.5 text-primary shrink-0" />
@@ -185,6 +191,7 @@ export default function ProprietairesPage() {
                 </div>
               </div>
 
+              {/* Bank Coordinates */}
               <div className="p-3 rounded-lg bg-surface-elevated/70 border border-surface-border text-xs space-y-1">
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="text-muted-foreground font-medium">{owner.bank}</span>
@@ -195,6 +202,7 @@ export default function ProprietairesPage() {
                 </div>
               </div>
 
+              {/* Associated Properties */}
               <div className="text-xs">
                 <span className="text-[10px] text-muted-foreground uppercase font-semibold">Biens sous gestion ({owner.properties_names.length})</span>
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
@@ -211,6 +219,7 @@ export default function ProprietairesPage() {
               </div>
             </div>
 
+            {/* Payouts Total and Actions */}
             <div className="mt-4 pt-3.5 border-t border-surface-border flex items-center justify-between">
               <div>
                 <span className="text-[10px] text-muted-foreground uppercase font-semibold">Total Reversé</span>
@@ -229,6 +238,7 @@ export default function ProprietairesPage() {
         ))}
       </div>
 
+      {/* Owner Detail & Payouts Statement Modal */}
       {selectedOwnerForPayouts && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-xl rounded-card bg-surface border border-surface-border shadow-2xl p-6 space-y-4">
@@ -305,6 +315,7 @@ export default function ProprietairesPage() {
         </div>
       )}
 
+      {/* Add Owner Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-lg rounded-card bg-surface border border-surface-border shadow-2xl p-6 space-y-4">

@@ -30,6 +30,7 @@ export default function PlaybookGuidePage() {
 
   return (
     <div className="space-y-6 lg:space-y-8 max-w-7xl mx-auto">
+      {/* Hero Header */}
       <div className="p-6 sm:p-8 rounded-card bg-gradient-to-r from-surface via-surface to-surface-elevated border border-primary/30 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
         
@@ -52,6 +53,7 @@ export default function PlaybookGuidePage() {
           </p>
         </div>
 
+        {/* Tab Navigation Pill Bar */}
         <div className="flex items-center gap-2 mt-6 pt-6 border-t border-surface-border overflow-x-auto pb-1 scrollbar-none">
           {[
             { id: "offre", label: "1. Offre & Services", icon: Crown },
@@ -80,8 +82,10 @@ export default function PlaybookGuidePage() {
         </div>
       </div>
 
+      {/* TAB 1: SERVICE OFFERING */}
       {activeTab === "offre" && (
         <div className="space-y-6 animate-fadeIn">
+          {/* Proposition de valeur */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div className="p-5 rounded-xl bg-surface border border-surface-border hover:border-primary/40 transition-all space-y-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
@@ -114,6 +118,7 @@ export default function PlaybookGuidePage() {
             </div>
           </div>
 
+          {/* Ce qui est inclus dans le mandat 25% */}
           <div className="p-6 rounded-card bg-surface border border-surface-border space-y-5">
             <h2 className="font-serif text-lg font-bold text-foreground flex items-center gap-2">
               <Award className="w-5 h-5 text-primary" />
@@ -142,9 +147,11 @@ export default function PlaybookGuidePage() {
         </div>
       )}
 
+      {/* TAB 2: ROLES & RESPONSIBILITIES */}
       {activeTab === "roles" && (
         <div className="space-y-6 animate-fadeIn">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Hassan Tiguidda */}
             <div className="p-6 rounded-card bg-surface border border-primary/30 shadow-xl space-y-4 flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-surface-muted font-bold text-lg shadow-lg shadow-primary/25">
@@ -171,6 +178,7 @@ export default function PlaybookGuidePage() {
               </div>
             </div>
 
+            {/* Propriétaire Mandant */}
             <div className="p-6 rounded-card bg-surface border border-surface-border shadow-xl space-y-4 flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="w-12 h-12 rounded-xl bg-surface-elevated border border-surface-border flex items-center justify-center text-foreground font-bold text-lg">
@@ -197,6 +205,7 @@ export default function PlaybookGuidePage() {
               </div>
             </div>
 
+            {/* Équipe Terrain & Voyageurs */}
             <div className="p-6 rounded-card bg-surface border border-surface-border shadow-xl space-y-4 flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="w-12 h-12 rounded-xl bg-surface-elevated border border-surface-border flex items-center justify-center text-foreground font-bold text-lg">
@@ -225,6 +234,7 @@ export default function PlaybookGuidePage() {
         </div>
       )}
 
+      {/* TAB 3: AI AGENTS TEAM */}
       {activeTab === "ai" && (
         <div className="space-y-6 animate-fadeIn">
           <div className="p-5 rounded-xl bg-primary/10 border border-primary/25 flex items-center gap-3">
@@ -274,6 +284,7 @@ export default function PlaybookGuidePage() {
         </div>
       )}
 
+      {/* TAB 4: OPERATIONAL WORKFLOW */}
       {activeTab === "workflow" && (
         <div className="space-y-6 animate-fadeIn">
           <div className="p-6 rounded-card bg-surface border border-surface-border space-y-6">
@@ -311,6 +322,7 @@ export default function PlaybookGuidePage() {
         </div>
       )}
 
+      {/* TAB 5: RACI MATRIX */}
       {activeTab === "raci" && (
         <div className="space-y-6 animate-fadeIn">
           <div className="p-6 rounded-card bg-surface border border-surface-border space-y-4">

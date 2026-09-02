@@ -12,12 +12,19 @@ export interface InsideAirbnbRawListing {
   room_type: string;
   accommodates: number;
   bedrooms: number;
-  price: string;
+  price: string; // e.g. "$120.00" or "1200 MAD"
   number_of_reviews: number;
   review_scores_rating: number;
   availability_30: number;
   availability_90: number;
   availability_365: number;
+}
+
+export interface InsideAirbnbCalendarRow {
+  listing_id: string;
+  date: string;
+  available: 't' | 'f';
+  price: string;
 }
 
 export interface QuartierAggregatedStats {
@@ -34,6 +41,7 @@ export interface QuartierAggregatedStats {
   historicalP10MAD: number;
 }
 
+// Mapping des quartiers officiels de Marrakech pour Inside Airbnb
 const ZONE_NORMALIZATION_MAP: Record<string, PropertyQuartier> = {
   "medina": "medina",
   "médina": "medina",
@@ -49,25 +57,29 @@ const ZONE_NORMALIZATION_MAP: Record<string, PropertyQuartier> = {
   "targa": "targa",
 };
 
+// Facteurs de saisonnalité historiques pour Marrakech (mois 1 à 12)
 export const MARRAKECH_SEASONALITY_FACTORS: Record<number, number> = {
-  1: 1.10,
-  2: 1.15,
-  3: 1.30,
-  4: 1.45,
-  5: 1.35,
-  6: 0.90,
-  7: 0.75,
-  8: 0.70,
-  9: 1.10,
-  10: 1.40,
-  11: 1.35,
-  12: 1.50,
+  1: 1.10, // Janvier: Hiver doux & golf
+  2: 1.15, // Février: Vacances scolaires EU
+  3: 1.30, // Mars: Printemps, pic touristique
+  4: 1.45, // Avril: Très haute saison (Pâques)
+  5: 1.35, // Mai: Climat idéal
+  6: 0.90, // Juin: Début des fortes chaleurs
+  7: 0.75, // Juillet: Basse saison estivale (chaleur)
+  8: 0.70, // Août: Basse saison
+  9: 1.10, // Septembre: Reprise
+  10: 1.40, // Octobre: Pic automnal très fort
+  11: 1.35, // Novembre: Événements, festivals
+  12: 1.50, // Décembre: Fêtes de fin d'année (Nouvel An VIP)
 };
 
 export class InsideAirbnbService {
   private static readonly USD_TO_MAD_RATE = 10.15;
   private static readonly EUR_TO_MAD_RATE = 10.95;
 
+  /**
+   * Parse un flux CSV ou texte brut de Inside Airbnb (listings.csv)
+   */
   public static parseListingsCSV(csvText: string): InsideAirbnbRawListing[] {
     const lines = csvText.trim().split("\n");
     if (lines.length <= 1) return [];
@@ -103,6 +115,9 @@ export class InsideAirbnbService {
     return results;
   }
 
+  /**
+   * Normalise une chaîne de prix en Dirham Marocain (MAD)
+   */
   public static parsePriceToMAD(priceStr: string | number): number {
     if (typeof priceStr === "number") return priceStr;
     const clean = priceStr.replace(/[^0-9.,]/g, "").replace(",", ".");
@@ -113,6 +128,9 @@ export class InsideAirbnbService {
     return Math.round(val);
   }
 
+  /**
+   * Normalise le quartier vers notre typologie
+   */
   public static normalizeZone(zoneRaw: string): PropertyQuartier {
     const clean = zoneRaw.toLowerCase().trim();
     for (const [key, normalized] of Object.entries(ZONE_NORMALIZATION_MAP)) {
@@ -121,6 +139,9 @@ export class InsideAirbnbService {
     return "autre";
   }
 
+  /**
+   * Déduit le type de bien à partir des caractéristiques Inside Airbnb
+   */
   public static inferPropertyType(listing: InsideAirbnbRawListing): PropertyType {
     const name = listing.name.toLowerCase();
     if (name.includes("riad")) return "riad";
@@ -130,6 +151,9 @@ export class InsideAirbnbService {
     return "appartement";
   }
 
+  /**
+   * Calcule les métriques agrégées (ADR, Taux d'occupation, RevPAR, Percentiles)
+   */
   public static aggregateMarketData(
     listings: InsideAirbnbRawListing[],
     currentMonth: number = new Date().getMonth() + 1
@@ -154,6 +178,7 @@ export class InsideAirbnbService {
       const [zone, propType, bedroomsStr] = key.split("__");
       const bedrooms = parseInt(bedroomsStr, 10);
 
+      // Calcul des prix en MAD
       const prices = groupList
         .map(l => this.parsePriceToMAD(l.price))
         .filter(p => p > 200 && p < 100000)
@@ -166,6 +191,7 @@ export class InsideAirbnbService {
       const p10 = prices[Math.floor(prices.length * 0.1)] || prices[0];
       const p90 = prices[Math.floor(prices.length * 0.9)] || prices[prices.length - 1];
 
+      // Estimation du taux d'occupation via availability_30 (Jours réservés = 30 - dispo)
       const occupancyRates = groupList.map(l => {
         const bookedDays = Math.max(0, 30 - (l.availability_30 || 15));
         return (bookedDays / 30) * 100;
@@ -195,6 +221,9 @@ export class InsideAirbnbService {
     return stats;
   }
 
+  /**
+   * Génère les benchmarks prêts à insérer en base de données Supabase
+   */
   public static toMarketBenchmarks(stats: QuartierAggregatedStats[]): Omit<MarketBenchmark, "id">[] {
     const now = new Date().toISOString();
     return stats.map(s => ({
@@ -211,6 +240,9 @@ export class InsideAirbnbService {
     }));
   }
 
+  /**
+   * Helper pour parser les lignes CSV avec guillemets
+   */
   private static parseCSVLine(text: string): string[] {
     const p: string[] = [];
     let entry = "";

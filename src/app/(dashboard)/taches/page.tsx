@@ -14,7 +14,10 @@ import {
   User, 
   ShieldCheck, 
   Camera, 
-  Wifi
+  Flame, 
+  Droplets, 
+  Wifi,
+  FileCheck2
 } from "lucide-react";
 
 export default function TachesPage() {
@@ -39,6 +42,7 @@ export default function TachesPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-2xl font-bold text-foreground">Opérations, Ménages & Check-ins</h1>
@@ -53,6 +57,7 @@ export default function TachesPage() {
         </button>
       </div>
 
+      {/* Marrakech Hospitality Operational Standards Checklist Reminder */}
       <div className="p-4 sm:p-5 rounded-card bg-surface border border-primary/25 space-y-3 shadow-lg">
         <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
           <Sparkles className="w-4 h-4" />
@@ -90,6 +95,7 @@ export default function TachesPage() {
         </div>
       </div>
 
+      {/* Filter Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
         {[
           { key: "all", label: "Toutes les opérations" },
@@ -112,6 +118,7 @@ export default function TachesPage() {
         ))}
       </div>
 
+      {/* Tasks Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredTasks.map((task) => {
           const isDone = task.status === "done";

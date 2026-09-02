@@ -23,13 +23,14 @@ export default function CalendrierPage() {
   const [selectedDate, setSelectedDate] = useState<string>("2026-09-01");
   const [targetPropertyId, setTargetPropertyId] = useState<string>("prop-1");
 
+  // Quick Add Booking Form State
   const [guestName, setGuestName] = useState("");
   const [platform, setPlatform] = useState<BookingPlatform>("direct");
   const [nightsCount, setNightsCount] = useState("4");
   const [guestsCount, setGuestsCount] = useState("4");
 
   const targetProperty = MOCK_PROPERTIES.find((p) => p.id === targetPropertyId) || MOCK_PROPERTIES[0];
-  const calculatedTotal = (targetProperty.base_price_mad || 2000) * (parseInt(nightsCount) || 1);
+  const calculatedTotal = (targetProperty?.base_price_mad || 2000) * (parseInt(nightsCount) || 1);
   const calculatedTouristTax = (parseInt(guestsCount) || 1) * (parseInt(nightsCount) || 1) * TOURIST_TAX_PER_PERSON_PER_NIGHT_MAD;
   const calculatedCommission = Math.round(calculatedTotal * 0.25);
 
@@ -57,6 +58,7 @@ export default function CalendrierPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-2xl font-bold text-foreground">Planning & Calendrier Multi-Biens</h1>
@@ -65,6 +67,7 @@ export default function CalendrierPage() {
           </p>
         </div>
 
+        {/* View mode toggle & month navigation */}
         <div className="flex items-center gap-3">
           <div className="flex items-center p-1 rounded-lg bg-surface border border-surface-border text-xs">
             <button
@@ -99,6 +102,7 @@ export default function CalendrierPage() {
         </div>
       </div>
 
+      {/* Legend & Property Filter */}
       <div className="p-4 rounded-card bg-surface border border-surface-border flex flex-wrap items-center justify-between gap-4 text-xs">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
@@ -133,6 +137,7 @@ export default function CalendrierPage() {
         </div>
       </div>
 
+      {/* Calendar Grid Container */}
       <div className="rounded-card bg-surface border border-surface-border overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
@@ -204,6 +209,7 @@ export default function CalendrierPage() {
         </div>
       </div>
 
+      {/* Quick Add Reservation Modal */}
       {isBookingModalOpen && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-lg rounded-card bg-surface border border-surface-border shadow-2xl p-6 space-y-4">
@@ -274,6 +280,7 @@ export default function CalendrierPage() {
                 </div>
               </div>
 
+              {/* Automatic Calculations Breakdown */}
               <div className="p-3.5 rounded-lg bg-surface-elevated/70 border border-surface-border space-y-1.5">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Montant Séjour ({nightsCount} nuits) :</span>

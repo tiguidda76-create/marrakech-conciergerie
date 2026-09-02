@@ -19,28 +19,25 @@ import { formatMAD } from "@/lib/utils";
 import { useState } from "react";
 
 const MONTHLY_REVENUE_DATA = [
-  { month: "Mars", revenueMAD: 450000, commissionMAD: 112500 },
-  { month: "Avr", revenueMAD: 520000, commissionMAD: 130000 },
-  { month: "Mai", revenueMAD: 480000, commissionMAD: 120000 },
-  { month: "Juin", revenueMAD: 560000, commissionMAD: 140000 },
-  { month: "Juil", revenueMAD: 610000, commissionMAD: 152500 },
-  { month: "Août", revenueMAD: 664200, commissionMAD: 166050 },
+  { month: "Jan", revenueMAD: 0, commissionMAD: 0 },
+  { month: "Fév", revenueMAD: 0, commissionMAD: 0 },
+  { month: "Mar", revenueMAD: 0, commissionMAD: 0 },
+  { month: "Avr", revenueMAD: 0, commissionMAD: 0 },
+  { month: "Mai", revenueMAD: 0, commissionMAD: 0 },
+  { month: "Juin", revenueMAD: 0, commissionMAD: 0 },
 ];
 
 const OCCUPANCY_COMPARISON_DATA = [
-  { month: "Mars", thisYear: 78, lastYear: 70 },
-  { month: "Avr", thisYear: 84, lastYear: 76 },
-  { month: "Mai", thisYear: 80, lastYear: 74 },
-  { month: "Juin", thisYear: 85, lastYear: 79 },
-  { month: "Juil", thisYear: 88, lastYear: 82 },
-  { month: "Août", thisYear: 92, lastYear: 85 },
+  { month: "Jan", thisYear: 0, lastYear: 0 },
+  { month: "Fév", thisYear: 0, lastYear: 0 },
+  { month: "Mar", thisYear: 0, lastYear: 0 },
+  { month: "Avr", thisYear: 0, lastYear: 0 },
+  { month: "Mai", thisYear: 0, lastYear: 0 },
+  { month: "Juin", thisYear: 0, lastYear: 0 },
 ];
 
 const SOURCE_DATA = [
-  { name: "Airbnb", value: 45, color: "#FF385C" },
-  { name: "Booking.com", value: 30, color: "#2E5BFF" },
-  { name: "Direct Concierge", value: 20, color: "#C49A6C" },
-  { name: "Abritel / Autre", value: 5, color: "#2D9F6F" },
+  { name: "Direct Concierge", value: 100, color: "#C49A6C" },
 ];
 
 export function RevenueChart() {

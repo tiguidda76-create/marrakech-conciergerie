@@ -6,6 +6,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Format currency in Moroccan Dirham (MAD) with € equivalent
+ */
 export function formatMAD(amount: number, showEUR: boolean = true): string {
   const formattedMAD = new Intl.NumberFormat("fr-MA", {
     style: "currency",
@@ -25,6 +28,9 @@ export function formatMAD(amount: number, showEUR: boolean = true): string {
   return `${formattedMAD} (~${formattedEUR})`;
 }
 
+/**
+ * Format date in Moroccan format (DD/MM/YYYY)
+ */
 export function formatDate(dateString: string | Date): string {
   if (!dateString) return "-";
   const date = typeof dateString === "string" ? new Date(dateString) : dateString;
@@ -36,6 +42,9 @@ export function formatDate(dateString: string | Date): string {
   }).format(date);
 }
 
+/**
+ * Format date with time
+ */
 export function formatDateTime(dateString: string | Date): string {
   if (!dateString) return "-";
   const date = typeof dateString === "string" ? new Date(dateString) : dateString;

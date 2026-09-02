@@ -2,7 +2,7 @@
 
 import { DashboardKPIMetrics } from "@/types";
 import { formatMAD } from "@/lib/utils";
-import { Percent, DollarSign, Star, Building2 } from "lucide-react";
+import { Percent, DollarSign, Star, Building2, TrendingUp, Sparkles } from "lucide-react";
 
 interface KPICardsProps {
   metrics: DashboardKPIMetrics;
@@ -43,7 +43,7 @@ export function KPICards({ metrics }: KPICardsProps) {
     {
       title: "Taux d'Occupation",
       value: `${metrics.occupancyRate}%`,
-      subtitle: "+4.2% vs mois dernier",
+      subtitle: metrics.propertiesCount > 0 ? "Moyenne sur votre parc" : "En attente de biens",
       icon: Percent,
       color: "from-emerald-500/20 to-emerald-500/5 text-emerald-400 border-emerald-500/20",
       sparkColor: "#2D9F6F",
@@ -60,8 +60,8 @@ export function KPICards({ metrics }: KPICardsProps) {
     },
     {
       title: "Note Moyenne Voyageurs",
-      value: `${metrics.avgRating} / 5`,
-      subtitle: "Basé sur 189 avis certifiés",
+      value: metrics.propertiesCount > 0 ? `${metrics.avgRating} / 5` : "5.0 / 5",
+      subtitle: "Avis vérifiés",
       icon: Star,
       color: "from-amber-500/20 to-amber-500/5 text-amber-400 border-amber-500/20",
       sparkColor: "#D97706",
@@ -69,12 +69,12 @@ export function KPICards({ metrics }: KPICardsProps) {
     },
     {
       title: "Biens Sous Gestion",
-      value: `${metrics.propertiesCount}`,
-      subtitle: `${metrics.activeBookingsCount} réservations actives`,
+      value: `${metrics.propertiesCount} Bien${metrics.propertiesCount > 1 ? "s" : ""}`,
+      subtitle: `${metrics.activeBookingsCount} réservation${metrics.activeBookingsCount > 1 ? "s" : ""} active${metrics.activeBookingsCount > 1 ? "s" : ""}`,
       icon: Building2,
       color: "from-blue-500/20 to-blue-500/5 text-blue-400 border-blue-500/20",
       sparkColor: "#2E5BFF",
-      sparkData: [6, 6, 7, 7, 8, 8, 8],
+      sparkData: [0, 0, 0, 0, 0, 0, metrics.propertiesCount],
     },
   ];
 

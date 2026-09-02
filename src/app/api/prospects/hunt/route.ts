@@ -11,8 +11,10 @@ export async function POST(request: Request) {
     const zone: PropertyQuartier = body.zone || "medina";
     const limit = Number(body.limit) || 6;
 
+    // Scan en direct via Prospect Hunter
     const leads = await RealProspectHunterService.huntProspects(zone, limit);
 
+    // Sauvegarde dans Supabase si connecté
     const supabase = await createServerClient();
     if (supabase && leads.length > 0) {
       try {

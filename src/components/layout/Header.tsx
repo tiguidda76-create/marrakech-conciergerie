@@ -34,6 +34,7 @@ export function Header({ onOpenSidebar }: HeaderProps) {
 
   return (
     <header className="h-16 border-b border-surface-border bg-surface/90 backdrop-blur-md px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30">
+      {/* Mobile Toggle & Search */}
       <div className="flex items-center gap-3 flex-1 max-w-md">
         <button
           onClick={onOpenSidebar}
@@ -53,7 +54,9 @@ export function Header({ onOpenSidebar }: HeaderProps) {
         </div>
       </div>
 
+      {/* Right Controls: Marrakech Local Time, Notifications, User */}
       <div className="flex items-center gap-3 lg:gap-5">
+        {/* Africa/Casablanca Live Time */}
         <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-surface-elevated border border-surface-border text-xs text-muted-foreground">
           <Calendar className="w-3.5 h-3.5 text-primary" />
           <span className="capitalize font-medium text-foreground text-[11px] lg:text-xs">
@@ -64,6 +67,7 @@ export function Header({ onOpenSidebar }: HeaderProps) {
           </span>
         </div>
 
+        {/* Notifications */}
         <button 
           aria-label="Notifications" 
           className="relative p-2 rounded-lg bg-surface-elevated border border-surface-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
@@ -72,6 +76,7 @@ export function Header({ onOpenSidebar }: HeaderProps) {
           <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary animate-pulse" />
         </button>
 
+        {/* User Badge */}
         <div className="flex items-center gap-2.5 pl-2 lg:pl-3 border-l border-surface-border">
           <div className="w-8 h-8 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-center text-primary font-bold text-xs">
             MC

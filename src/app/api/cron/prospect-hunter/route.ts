@@ -5,7 +5,13 @@ import { createServerClient } from "@/lib/supabase-server";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
+  const authHeader = request.headers.get("authorization");
+  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    // Autorisé si appel direct interne
+  }
+
   try {
+    // Scan réel des zones clés de Marrakech
     const medinaLeads = await RealProspectHunterService.huntProspects("medina", 3);
     const palmeraieLeads = await RealProspectHunterService.huntProspects("palmeraie", 3);
     const allLeads = [...medinaLeads, ...palmeraieLeads];

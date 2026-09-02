@@ -29,6 +29,7 @@ export default function MarketOverviewCard({
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncSuccess, setSyncSuccess] = useState(false);
 
+  // Positionnement du portefeuille en % vs marché local
   const priceDiffPct = Math.round(
     ((portfolioAvgPriceMAD - marketAvgPriceMAD) / marketAvgPriceMAD) * 100
   );
@@ -52,8 +53,10 @@ export default function MarketOverviewCard({
 
   return (
     <div className="p-5 sm:p-6 rounded-card bg-gradient-to-br from-surface via-surface to-surface-elevated border border-primary/25 shadow-xl relative overflow-hidden">
+      {/* Background ambient glow */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-surface-border">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-inner">
@@ -86,6 +89,7 @@ export default function MarketOverviewCard({
         </div>
       </div>
 
+      {/* Success banner */}
       {syncSuccess && (
         <div className="my-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2 animate-fadeIn">
           <CheckCircle2 className="w-4 h-4" />
@@ -93,7 +97,9 @@ export default function MarketOverviewCard({
         </div>
       )}
 
+      {/* 3 Key Metrics KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 my-5">
+        {/* Metric 1: Local Market ADR */}
         <div className="p-4 rounded-xl bg-surface-elevated/70 border border-surface-border hover:border-primary/30 transition-all">
           <div className="flex items-center justify-between text-muted-foreground text-xs mb-1">
             <span>Prix Moyen Marché (ADR)</span>
@@ -107,6 +113,7 @@ export default function MarketOverviewCard({
           </p>
         </div>
 
+        {/* Metric 2: Market Occupancy */}
         <div className="p-4 rounded-xl bg-surface-elevated/70 border border-surface-border hover:border-primary/30 transition-all">
           <div className="flex items-center justify-between text-muted-foreground text-xs mb-1">
             <span>Taux d&apos;Occupation Ville</span>
@@ -120,6 +127,7 @@ export default function MarketOverviewCard({
           </p>
         </div>
 
+        {/* Metric 3: Portfolio Pricing Positioning */}
         <div className="p-4 rounded-xl bg-surface-elevated/70 border border-surface-border hover:border-primary/30 transition-all">
           <div className="flex items-center justify-between text-muted-foreground text-xs mb-1">
             <span>Positionnement Tarifaire</span>
@@ -137,6 +145,7 @@ export default function MarketOverviewCard({
         </div>
       </div>
 
+      {/* Sub-market breakdown pills & CTA */}
       <div className="pt-4 border-t border-surface-border/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2 text-[11px]">
           <span className="text-muted-foreground font-medium">Repères quartiers :</span>

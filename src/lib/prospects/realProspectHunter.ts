@@ -28,6 +28,7 @@ export class RealProspectHunterService {
    * Scanne en direct les biens d'un quartier pour identifier des opportunités de mandat
    */
   public static async huntProspects(zone: PropertyQuartier = "medina", limit: number = 6): Promise<ProspectLead[]> {
+    // 1. Scraping des annonces réelles via le scraper
     const scrapedListings = await CompetitorScraperService.scrapeCompetitors({
       zone,
       limit,
@@ -37,6 +38,7 @@ export class RealProspectHunterService {
     const leads: ProspectLead[] = [];
 
     for (const item of scrapedListings) {
+      // 2. Audit de sous-performance et opportunités
       const auditNotes: string[] = [];
       let score = 70;
 
@@ -63,9 +65,11 @@ export class RealProspectHunterService {
         score += 5;
       }
 
+      // 3. Calcul du Gain Annuel Estimé (MAD) pour le propriétaire
+      // Hypothèse : gestion actuelle ~55% occ @ currentPrice vs Conciergerie 80% occ @ targetADR net de com 25%
       const currentGrossYearly = currentPrice * (365 * 0.55);
       const optimizedGrossYearly = targetADR * (365 * bench.targetOccupancy);
-      const ownerNetOptimized = optimizedGrossYearly * 0.75;
+      const ownerNetOptimized = optimizedGrossYearly * 0.75; // 75% reversé au propriétaire
 
       const estimatedGainMAD = Math.max(
         15000,
@@ -73,8 +77,11 @@ export class RealProspectHunterService {
       );
 
       score = Math.min(96, Math.max(60, score));
+
+      // Déduction du nom propriétaire / contact
       const ownerName = item.platform === "airbnb" ? "Propriétaire Mandant" : "Gérant Particulier";
 
+      // 4. Génération des messages d'outreach personnalisés
       const whatsappMsg = this.generateWhatsAppPitch({
         propertyTitle: item.title,
         zone,
@@ -98,7 +105,7 @@ export class RealProspectHunterService {
         id: `lead-${Date.now()}-${leads.length + 1}`,
         title: item.title,
         zone,
-        property_type: (item.property_type as PropertyType) || "riad",
+        property_type: item.property_type || "riad",
         bedrooms: item.bedrooms || 3,
         nightly_price: currentPrice,
         estimated_adr: Math.round(targetADR),
@@ -121,6 +128,9 @@ export class RealProspectHunterService {
     return leads;
   }
 
+  /**
+   * Génère une accroche WhatsApp percutante et professionnelle
+   */
   public static generateWhatsAppPitch(data: {
     propertyTitle: string;
     zone: string;
@@ -132,6 +142,9 @@ export class RealProspectHunterService {
     return `Bonjour,\n\nJe me permets de vous contacter au sujet de votre magnifique bien "${data.propertyTitle}" à Marrakech (${data.zone.toUpperCase()}).\n\nAprès analyse de votre secteur, votre propriété présente un potentiel exceptionnel : avec notre tarification dynamique et nos standards hôteliers 5 étoiles, vous pourriez dégager un gain additionnel net estimé à +${data.estimatedGainMAD.toLocaleString("fr-FR")} MAD/an tout en déléguant 100% de l'intendance (ménage 3h, check-in VIP, linge, déclarations légales).\n\nNous gérons des Riads et Villas d'exception sur Marrakech avec une commission claire de 25% (100% au succès).\n\nSeriez-vous ouvert à un échange de 10 minutes cette semaine ?\n\nBien cordialement,\nHassan Tiguidda\nFondateur — Marrakech Conciergerie Privée\n📞 +212 6 32 15 54 30\nICE: ${LEGAL_ENTITY.ice}`;
   }
 
+  /**
+   * Génère un email d'approche formel avec audit financier
+   */
   public static generateEmailPitch(data: {
     propertyTitle: string;
     zone: string;

@@ -25,6 +25,7 @@ export default function FinancesPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-2xl font-bold text-foreground">Finances, Facturation & Reversements</h1>
@@ -42,6 +43,7 @@ export default function FinancesPage() {
         </button>
       </div>
 
+      {/* Official Legal Entity & Bank Coordinates Banner */}
       <div className="p-5 rounded-card bg-surface border border-primary/30 shadow-xl relative overflow-hidden">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-1.5">
@@ -70,6 +72,7 @@ export default function FinancesPage() {
         </div>
       </div>
 
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-card bg-surface border border-surface-border shadow-lg">
           <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold uppercase mb-2">
@@ -108,6 +111,7 @@ export default function FinancesPage() {
         </div>
       </div>
 
+      {/* Seasonal Pricing Strategy Insights */}
       <div className="p-5 rounded-card bg-surface border border-surface-border space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
@@ -127,6 +131,7 @@ export default function FinancesPage() {
         </div>
       </div>
 
+      {/* Recent Payouts and Ledger */}
       <div className="rounded-card bg-surface border border-surface-border overflow-hidden shadow-xl">
         <div className="p-4 border-b border-surface-border flex items-center justify-between bg-surface-elevated/40">
           <h2 className="font-serif text-base font-bold text-foreground">Grand Livre des Opérations & Reversements J+5</h2>

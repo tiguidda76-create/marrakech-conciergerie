@@ -10,6 +10,7 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md p-8 rounded-card bg-surface border border-surface-border shadow-2xl space-y-6">
+        {/* Brand */}
         <div className="text-center space-y-2">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary-dark mx-auto flex items-center justify-center shadow-lg shadow-primary/25">
             <Sparkles className="w-6 h-6 text-surface-muted" />
@@ -22,6 +23,7 @@ export default function AuthPage() {
           </p>
         </div>
 
+        {/* Form */}
         <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-foreground">Adresse Email</label>
@@ -56,6 +58,7 @@ export default function AuthPage() {
           </Link>
         </form>
 
+        {/* OAuth / Google */}
         <div className="pt-4 border-t border-surface-border text-center">
           <button className="w-full py-2.5 px-4 rounded-btn bg-surface-elevated hover:bg-surface-border border border-surface-border text-xs font-semibold text-foreground flex items-center justify-center gap-2 transition-colors">
             <span>Continuer avec Google</span>

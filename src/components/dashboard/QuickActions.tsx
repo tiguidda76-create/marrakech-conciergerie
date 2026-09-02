@@ -1,4 +1,5 @@
 import { Plus, CalendarPlus, KeyRound, Sparkles, RefreshCw, BookOpen } from "lucide-react";
+
 import Link from "next/link";
 
 export function QuickActions() {
@@ -40,6 +41,7 @@ export function QuickActions() {
           <CalendarPlus className="w-3.5 h-3.5" />
           Nouvelle Réservation
         </Link>
+
       </div>
     </div>
   );

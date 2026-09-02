@@ -33,6 +33,7 @@ export default function ParametresPage() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(MOCK_TEAM_MEMBERS);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
+  // Editable Profile State
   const [entityName, setEntityName] = useState(LEGAL_ENTITY.name);
   const [entityIce, setEntityIce] = useState(LEGAL_ENTITY.ice);
   const [entityAddress, setEntityAddress] = useState(LEGAL_ENTITY.address);
@@ -41,10 +42,12 @@ export default function ParametresPage() {
   const [entityRib, setEntityRib] = useState(LEGAL_ENTITY.rib);
   const [entitySwift, setEntitySwift] = useState(LEGAL_ENTITY.swift);
 
+  // System Settings State
   const [defaultCurrency, setDefaultCurrency] = useState("MAD");
   const [touristTaxRate, setTouristTaxRate] = useState(TOURIST_TAX_PER_PERSON_PER_NIGHT_MAD.toString());
   const [isDarkMode, setIsDarkMode] = useState(true);
 
+  // Integrations State
   const [supabaseUrl, setSupabaseUrl] = useState("https://marrakech-db.supabase.co");
   const [resendApiKey, setResendApiKey] = useState("re_live_••••••••••••••••••••••••");
   const [whatsappPhoneId, setWhatsappPhoneId] = useState("108472910482910");
@@ -67,6 +70,7 @@ export default function ParametresPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-2xl font-bold text-foreground">Paramètres & Configuration Système</h1>
@@ -91,6 +95,7 @@ export default function ParametresPage() {
         </div>
       )}
 
+      {/* Tabs */}
       <div className="flex items-center gap-2 border-b border-surface-border pb-1 overflow-x-auto text-xs">
         <button
           onClick={() => setActiveTab("profile")}
@@ -141,6 +146,7 @@ export default function ParametresPage() {
         </button>
       </div>
 
+      {/* Tab Content: Legal Profile */}
       {activeTab === "profile" && (
         <form onSubmit={handleSave} className="space-y-6">
           <div className="p-6 rounded-card bg-surface border border-surface-border shadow-xl space-y-5 text-xs">
@@ -245,6 +251,7 @@ export default function ParametresPage() {
         </form>
       )}
 
+      {/* Tab Content: Team */}
       {activeTab === "team" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -305,6 +312,7 @@ export default function ParametresPage() {
         </div>
       )}
 
+      {/* Tab Content: Integrations */}
       {activeTab === "integrations" && (
         <div className="p-6 rounded-card bg-surface border border-surface-border shadow-xl space-y-6 text-xs">
           <div className="space-y-1">
@@ -313,6 +321,7 @@ export default function ParametresPage() {
           </div>
 
           <div className="space-y-4">
+            {/* iCal Engine */}
             <div className="p-4 rounded-lg bg-surface-elevated/70 border border-surface-border space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 font-bold text-foreground">
@@ -340,6 +349,7 @@ export default function ParametresPage() {
               </div>
             </div>
 
+            {/* Supabase Database */}
             <div className="p-4 rounded-lg bg-surface-elevated/70 border border-surface-border space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 font-bold text-foreground">
@@ -361,6 +371,7 @@ export default function ParametresPage() {
               </div>
             </div>
 
+            {/* WhatsApp Business API */}
             <div className="p-4 rounded-lg bg-surface-elevated/70 border border-surface-border space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 font-bold text-foreground">
@@ -385,6 +396,7 @@ export default function ParametresPage() {
         </div>
       )}
 
+      {/* Tab Content: General & Theme */}
       {activeTab === "general" && (
         <div className="p-6 rounded-card bg-surface border border-surface-border shadow-xl space-y-6 text-xs">
           <div className="space-y-1">
@@ -418,6 +430,7 @@ export default function ParametresPage() {
             </div>
           </div>
 
+          {/* Dark / Light Mode Switcher */}
           <div className="p-4 rounded-lg bg-surface-elevated/70 border border-surface-border flex items-center justify-between">
             <div className="flex items-center gap-3">
               {isDarkMode ? <Moon className="w-5 h-5 text-primary" /> : <Sun className="w-5 h-5 text-amber-400" />}

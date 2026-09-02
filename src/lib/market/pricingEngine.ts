@@ -21,32 +21,41 @@ export interface PricingContext {
 }
 
 export class PricingEngine {
-  private static readonly TARGET_OCCUPANCY_RATE = 80.0;
-  private static readonly WEEKEND_PREMIUM_PCT = 0.18;
-  private static readonly SUPERHOST_RATING_BENCHMARK = 4.85;
+  private static readonly TARGET_OCCUPANCY_RATE = 80.0; // Taux d'occupation cible idéal (%)
+  private static readonly WEEKEND_PREMIUM_PCT = 0.18; // +18% vendredis et samedis soir
+  private static readonly SUPERHOST_RATING_BENCHMARK = 4.85; // Seuil d'excellence
 
+  /**
+   * Calcule la recommandation tarifaire optimale pour un bien
+   */
   public static calculateRecommendation(context: PricingContext): PricingRecommendation {
     const { property, benchmark, competitors, targetDate = new Date() } = context;
 
+    // 1. Détermination du prix de base (Base ADR)
     const basePrice = benchmark?.avg_daily_rate || property.base_price_mad;
 
+    // 2. Facteur de Saisonnalité et Calendrier (Mois + Jour de la semaine)
     const month = targetDate.getMonth() + 1;
     const seasonMultiplier = MARRAKECH_SEASONALITY_FACTORS[month] || 1.0;
     
-    const dayOfWeek = targetDate.getDay();
+    const dayOfWeek = targetDate.getDay(); // 0 = Dimanche, 5 = Vendredi, 6 = Samedi
     const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;
     const weekendModifier = isWeekend ? (1 + this.WEEKEND_PREMIUM_PCT) : 1.0;
 
     const totalSeasonalityModifier = Number((seasonMultiplier * weekendModifier).toFixed(2));
 
+    // 3. Facteur d'Occupation de la Zone vs Objectif
     const zoneOccupancy = benchmark?.occupancy_rate || 78.0;
     const occupancyDiff = zoneOccupancy - this.TARGET_OCCUPANCY_RATE;
+    // Si zone sous tension (> 85%), on pousse les prix (+10% à +20%). Si faible demande (< 70%), on assouplit (-8%)
     const occupancyModifier = Number((1 + (occupancyDiff / 100) * 0.75).toFixed(2));
 
+    // 4. Prime de Réputation / Note Moyenne (Rating Premium)
     const propertyRating = property.rating || 4.90;
     const ratingDelta = propertyRating - this.SUPERHOST_RATING_BENCHMARK;
     const ratingPremium = Number((1 + Math.max(-0.10, Math.min(0.20, ratingDelta * 0.6))).toFixed(2));
 
+    // 5. Pression Concurrentielle Directe (Competitor Pressure)
     let competitorAvg = basePrice;
     let competitorPressure = 1.0;
 
@@ -54,23 +63,28 @@ export class PricingEngine {
       const compPrices = competitors.map(c => c.nightly_price);
       competitorAvg = Math.round(compPrices.reduce((a, b) => a + b, 0) / compPrices.length);
       const ratio = competitorAvg / basePrice;
+      // Régulation douce vers la moyenne des concurrents observés
       competitorPressure = Number((0.8 + (ratio * 0.2)).toFixed(2));
     }
 
+    // 6. Calcul du Prix Recommandé Final (Arrondi aux 50 MAD supérieurs pour standing)
     const rawRecommended = basePrice * totalSeasonalityModifier * occupancyModifier * ratingPremium * competitorPressure;
     const recommendedPrice = Math.round(rawRecommended / 50) * 50;
 
-    const minPrice = Math.round((property.base_price_mad * 0.75) / 50) * 50;
-    const maxPrice = Math.round((property.base_price_mad * 1.65) / 50) * 50;
+    // 7. Bornes de Sécurité (Plancher / Plafond)
+    const minPrice = Math.round((property.base_price_mad * 0.75) / 50) * 50; // -25% max pour préserver le standing
+    const maxPrice = Math.round((property.base_price_mad * 1.65) / 50) * 50; // +65% max pour éviter l'inélasticité
 
     const boundedPrice = Math.max(minPrice, Math.min(maxPrice, recommendedPrice));
 
+    // 8. Indice de Confiance (0 - 100%)
     let confidence = 75;
     if (benchmark) confidence += 10;
     if (competitors.length >= 4) confidence += 10;
     if (property.reviews_count && property.reviews_count > 20) confidence += 5;
     confidence = Math.min(98, confidence);
 
+    // 9. Génération des Justifications Analytiques en Français
     const reasoning = this.buildReasoningText({
       property,
       boundedPrice,
@@ -104,6 +118,9 @@ export class PricingEngine {
     };
   }
 
+  /**
+   * Génère une série temporelle prévisionnelle de tarification sur 30 jours
+   */
   public static generate30DayForecast(
     property: Property,
     benchmark?: MarketBenchmark,
@@ -127,8 +144,10 @@ export class PricingEngine {
         targetDate,
       });
 
+      // Simulation de la demande journalière
       const dayOfWeek = targetDate.getDay();
       const demandFactor = (dayOfWeek === 5 || dayOfWeek === 6) ? 1.25 : 0.95;
+
       const dateStr = targetDate.toISOString().split("T")[0];
 
       points.push({
@@ -144,6 +163,9 @@ export class PricingEngine {
     return points;
   }
 
+  /**
+   * Construit la synthèse explicative de la recommandation
+   */
   private static buildReasoningText(ctx: {
     property: Property;
     boundedPrice: number;
@@ -161,6 +183,7 @@ export class PricingEngine {
     const sign = deltaPct >= 0 ? "+" : "";
 
     const parts: string[] = [];
+
     parts.push(
       `Tarif optimisé à **${ctx.boundedPrice.toLocaleString("fr-FR")} MAD** (${sign}${deltaPct}% vs tarif de base ${ctx.property.base_price_mad.toLocaleString("fr-FR")} MAD).`
     );

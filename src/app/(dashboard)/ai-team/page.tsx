@@ -227,12 +227,12 @@ export default function AITeamPage() {
       id: "msg-init-1",
       sender: "agent",
       agentName: "Manager Radar",
-      text: `Bonjour ! Je suis **Manager Radar**, l'orchestrateur de votre équipe AI pour **Marrakech Conciergerie**.\n\n📊 **Point de situation en direct** :\n- **Taux d'occupation** : 87.5% (6 biens actifs)\n- **Volume brut généré** : ${formatMAD(MOCK_KPI_METRICS.monthlyRevenueMAD)} (${formatMAD(MOCK_KPI_METRICS.conciergeRevenueMAD)} de commission nette conciergerie à 25%)\n- **Synchronisation iCal** : 100% à jour (Airbnb & Booking.com)\n- **Opérations terrain** : 0 retard sur les rotations ménage de 3h.\n\nComment puis-je vous assister ou quel agent souhaitez-vous mobiliser ?`,
+      text: `Bonjour Si Hassan ! Je suis **Manager Radar**, l'orchestrateur de votre escouade IA pour **Marrakech Conciergerie Privée**.\n\n📊 **Statut Opérationnel** :\n- **Intelligence IA Groq Llama 3.3 (70B/120B)** : Connectée & Opérationnelle\n- **Envoi Email Réel SMTP** : \`tiguidda76@gmail.com\` actif\n- **WhatsApp Direct** : \`${LEGAL_ENTITY.phone}\`\n- **Prospection Terrain** : Modules Médina, Palmeraie, Guéliz, Hivernage prêts pour l'acquisition de mandats.\n\nPosez-moi vos questions ou sélectionnez un agent spécialisé (Prospect Hunter, Revenue Manager, Legal Shield) pour lancer une mission.`,
       timestamp: "À l'instant",
     },
   ]);
 
-  const handleSendMessage = (textToSend?: string) => {
+  const handleSendMessage = async (textToSend?: string) => {
     const text = textToSend || inputText;
     if (!text.trim()) return;
 
@@ -244,43 +244,53 @@ export default function AITeamPage() {
       timestamp: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const newHistory = [...messages, userMsg];
+    setMessages(newHistory);
     if (!textToSend) setInputText("");
     setIsTyping(true);
 
-    setTimeout(() => {
-      let replyText = "";
-      const lower = text.toLowerCase();
+    try {
+      const res = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: newHistory,
+          agentId: selectedAgent.id,
+          agentName: selectedAgent.name,
+        }),
+      });
 
-      if (selectedAgent.id === "prospect-hunter" || lower.includes("prospect") || lower.includes("lead")) {
-        replyText = `🎯 **Rapport Prospect Hunter — Marrakech**\n\nVoici les **2 opportunités prioritaires** qualifiées ce matin avec un score supérieur à 75/100 :\n\n1. **Riad Dar Salam (Médina - Bab Doukkala)** — *Score: 85/100*\n   - 4 suites, patio avec bassin, terrasse vue Koutoubia.\n   - **Points faibles actuels** : Photos sous-exposées, délai de réponse > 2h, pas de conciergerie pro.\n   - **Gain potentiel estimé** : **+14 000 MAD/mois** avec notre tarification dynamique.\n\n2. **Villa Les Palmiers (Circuit de la Palmeraie)** — *Score: 78/100*\n   - 5 chambres, grand jardin arboré, piscine privée chauffée.\n   - **Anomalie détectée** : Tarif nuitée 35% sous le benchmark du secteur.\n   - **Gain potentiel** : **+25 000 MAD/mois**.\n\nSouhaitez-vous que je demande à **Email Writer** de générer les emails d'approche personnalisés ?`;
-      } else if (selectedAgent.id === "email-writer" || lower.includes("email") || lower.includes("avis") || lower.includes("nurturing")) {
-        replyText = `✉️ **Email Writer — Proposition de Séquence**\n\n**Objet :** *Optimisation locative & hospitalité d'exception pour votre bien à Marrakech*\n\n*Bonjour Monsieur/Madame,*\n\n*Propriétaire d'un bien d'exception à Marrakech, vous méritez une gestion sereine et valorisante. Marrakech Conciergerie garantit à vos hôtes une expérience 5 étoiles tout en maximisant vos revenus locatifs nets :*\n\n- ✨ **Commission transparente de 25%** sur le chiffre brut encaissé.\n- ⏱️ **Virement bancaire de vos loyers à J+5** chaque début de mois avec bordereau détaillé.\n- 🧼 **Ménage d'orfèvre (QC 30 points)** et accueil VIP avec thé à la menthe traditionnel.\n- ⚖️ **Conformité totale** avec les déclarations de police et la taxe de séjour (11 MAD).\n\n*Seriez-vous disponible pour un court échange de 10 minutes afin de découvrir notre estimation locative offerte ?*\n\nBien cordialement,\n**Hassan Tiguidda** — Marrakech Conciergerie Privée`;
-      } else if (selectedAgent.id === "auditor-agent" || lower.includes("ical") || lower.includes("taxe") || lower.includes("conflit")) {
-        replyText = `🛡️ **Auditor Agent — Bilan de Conformité**\n\n- **Flux iCal RFC 5545** : 6 flux actifs vérifiés. **0 chevauchement ni double réservation**.\n- **Taxe de séjour (11 MAD/personne/nuit)** : **1 210 MAD** provisionnés sur les séjours d'août/septembre, déclarations prêtes pour la Délégation du Tourisme.\n- **Turnaround ménage** : Toutes les fenêtres de 3h (11h00 → 14h00) sont sécurisées avec affectation nominative des gouvernantes.`;
-      } else if (selectedAgent.id === "billing-officer" || lower.includes("commission") || lower.includes("reversement") || lower.includes("rib")) {
-        replyText = `💳 **Billing Officer — Synthèse Financière**\n\n- **Chiffre d'Affaires Brut** : ${formatMAD(MOCK_KPI_METRICS.monthlyRevenueMAD)}\n- **Commissions Conciergerie (25%)** : ${formatMAD(MOCK_KPI_METRICS.conciergeRevenueMAD)} *(Exonéré de TVA selon Art. 91 CGI)*\n- **Reversements Propriétaires (75% nets)** : ${formatMAD(MOCK_KPI_METRICS.monthlyRevenueMAD - MOCK_KPI_METRICS.conciergeRevenueMAD)}\n- **Délai d'exécution** : Exécution des virements à J+5 vers les RIB enregistrés (Attijariwafa, BMCE, CIH).`;
-      } else if (selectedAgent.id === "legal-shield" || lower.includes("loi") || lower.includes("ice") || lower.includes("police")) {
-        replyText = `⚖️ **Legal Shield — Statut Légal & Fiscal**\n\n- **Émetteur Officiel** : ${LEGAL_ENTITY.name} (${LEGAL_ENTITY.status})\n- **Numéro ICE** : \`${LEGAL_ENTITY.ice}\`\n- **Mention TVA obligatoire** : *"${LEGAL_ENTITY.tvaExemptionMention}"*\n- **Formalités de Police** : Transmission des fiches d'enregistrement obligatoires sous 24h après le check-in des voyageurs internationaux.`;
+      if (res.ok) {
+        const data = await res.json();
+        const agentMsg: ChatMessage = {
+          id: `agt-${Date.now()}`,
+          sender: "agent",
+          agentName: selectedAgent.name,
+          text: data.reply || "Réponse reçue.",
+          timestamp: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+        };
+        setMessages((prev) => [...prev, agentMsg]);
       } else {
-        replyText = `🤖 **${selectedAgent.name} à votre écoute**\n\nJ'ai bien pris en compte votre demande : *" ${text} "*.\n\nToutes les métriques de la conciergerie sont au vert à Marrakech. Nos 8 agents continuent leur veille automatique 24/7 sur les plateformes, les calendriers et la satisfaction des voyageurs.`;
+        throw new Error("Erreur réponse API");
       }
-
-      const agentMsg: ChatMessage = {
+    } catch (err) {
+      console.error(err);
+      const fallbackMsg: ChatMessage = {
         id: `agt-${Date.now()}`,
         sender: "agent",
         agentName: selectedAgent.name,
-        text: replyText,
+        text: `Bien reçu Si Hassan. En tant que ${selectedAgent.name}, je suis à votre disposition pour analyser vos biens et opportunités à Marrakech.`,
         timestamp: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
       };
-
-      setMessages((prev) => [...prev, agentMsg]);
+      setMessages((prev) => [...prev, fallbackMsg]);
+    } finally {
       setIsTyping(false);
-    }, 800);
+    }
   };
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -294,6 +304,7 @@ export default function AITeamPage() {
           </p>
         </div>
 
+        {/* Global AI Status Badge */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -302,6 +313,7 @@ export default function AITeamPage() {
         </div>
       </div>
 
+      {/* Tabs */}
       <div className="flex items-center gap-2 border-b border-surface-border pb-1 overflow-x-auto text-xs">
         <button
           onClick={() => setActiveTab("chat")}
@@ -340,8 +352,10 @@ export default function AITeamPage() {
         </button>
       </div>
 
+      {/* TAB 1: LIVE CHAT */}
       {activeTab === "chat" && (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Agent Selector Sidebar */}
           <div className="lg:col-span-1 space-y-3">
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
               Sélectionner l&apos;Agent
@@ -380,7 +394,9 @@ export default function AITeamPage() {
             </div>
           </div>
 
+          {/* Chat Window */}
           <div className="lg:col-span-3 rounded-card bg-surface border border-surface-border shadow-xl flex flex-col h-[640px] overflow-hidden">
+            {/* Chat Header */}
             <div className="p-4 border-b border-surface-border bg-surface-elevated/60 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`w-9 h-9 rounded-xl ${selectedAgent.bgColor} ${selectedAgent.color} flex items-center justify-center shadow-md`}>
@@ -406,6 +422,7 @@ export default function AITeamPage() {
               </div>
             </div>
 
+            {/* Messages Area */}
             <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs">
               {messages.map((msg) => (
                 <div
@@ -446,6 +463,7 @@ export default function AITeamPage() {
               )}
             </div>
 
+            {/* Quick Suggestions */}
             <div className="p-2.5 border-t border-surface-border/60 bg-surface-elevated/30 flex items-center gap-2 overflow-x-auto">
               <span className="text-[10px] text-muted-foreground uppercase font-bold shrink-0 pl-1">
                 Suggestions :
@@ -461,6 +479,7 @@ export default function AITeamPage() {
               ))}
             </div>
 
+            {/* Input Form */}
             <div className="p-3 border-t border-surface-border bg-surface flex items-center gap-2">
               <input
                 type="text"
@@ -485,6 +504,7 @@ export default function AITeamPage() {
         </div>
       )}
 
+      {/* TAB 2: FULL SQUAD MATRIX */}
       {activeTab === "squad" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {AI_SQUAD.map((agent) => {
@@ -549,6 +569,7 @@ export default function AITeamPage() {
         </div>
       )}
 
+      {/* TAB 3: LIVE EVENT LOGS */}
       {activeTab === "logs" && (
         <div className="rounded-card bg-surface border border-surface-border shadow-xl overflow-hidden text-xs">
           <div className="p-4 border-b border-surface-border bg-surface-elevated/50 flex items-center justify-between">

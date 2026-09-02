@@ -1,17 +1,21 @@
-export const MAD_TO_EUR_RATE = 0.093;
-export const DEFAULT_COMMISSION_PCT = 25;
-export const TOURIST_TAX_PER_PERSON_PER_NIGHT_MAD = 11;
+export const MAD_TO_EUR_RATE = 0.093; // 1 MAD = ~0.093 EUR
+
+export const DEFAULT_COMMISSION_PCT = 25; // 25% default concierge commission
+
+export const TOURIST_TAX_PER_PERSON_PER_NIGHT_MAD = 11; // Taxe de séjour Marrakech: 11 MAD/nuit/personne
 
 export const LEGAL_ENTITY = {
-  name: "HASSAN TIGUIDDA",
+  name: "AUTO-ENTREPRENEUR HASSAN TIGUIDDA",
   status: "Auto-Entrepreneur",
+  brand: "MARRAKECH CONCIERGERIE PRIVÉE & HOSPITALITÉ",
   ice: "1161674000043",
   address: "Les portes de Marrakech Zone 16 imm 118 app 03 Marrakech, Maroc",
   phone: "+212 6 32 15 54 30",
+  rawPhone: "0632155430",
   email: "tiguidda76@gmail.com",
   rib: "007450001399370030009822",
   swift: "BCMAMAMC",
-  bank: "Attijariwafa Bank (Maroc)",
+  bank: "BMCE Bank / BANK OF AFRICA (Marrakech Guéliz)",
   tvaExemptionMention: "Montant en dirhams exonéré de la TVA (Art 91 - II - 1° du Code Général des Impôts)",
 };
 

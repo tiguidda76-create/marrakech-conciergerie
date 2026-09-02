@@ -11,6 +11,7 @@ export async function GET(
   const propName = property ? property.name : "Marrakech Property";
   const propBookings = MOCK_BOOKINGS.filter((b) => b.property_id === propertyId);
 
+  // Format dates to iCal YYYYMMDD
   const formatIcalDate = (dateStr: string) => dateStr.replace(/-/g, "");
 
   const now = new Date()

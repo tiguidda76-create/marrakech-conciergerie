@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Public paths that do not require session
   const isPublicPath =
     pathname.startsWith("/auth") ||
     pathname.startsWith("/api/health") ||
@@ -15,6 +16,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Allow proceeding to dashboard
   return NextResponse.next();
 }
 

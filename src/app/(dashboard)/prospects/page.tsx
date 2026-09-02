@@ -43,6 +43,7 @@ export default function ProspectsPage() {
   const [activeModalLead, setActiveModalLead] = useState<ProspectLead | null>(null);
   const [copiedType, setCopiedType] = useState<"whatsapp" | "email" | null>(null);
 
+  // Charger les prospects existants
   useEffect(() => {
     fetchProspects();
   }, []);
@@ -62,6 +63,7 @@ export default function ProspectsPage() {
     }
   };
 
+  // Lancer un scan en direct avec Prospect Hunter
   const handleRunLiveHunt = async () => {
     setIsScanning(true);
     try {
@@ -74,6 +76,7 @@ export default function ProspectsPage() {
       if (res.ok) {
         const data = await res.json();
         if (data.leads && data.leads.length > 0) {
+          // Fusionner avec les leads existants
           setLeads(prev => {
             const existingUrls = new Set(prev.map(p => p.url));
             const newOnes = data.leads.filter((l: ProspectLead) => !existingUrls.has(l.url));
@@ -88,6 +91,7 @@ export default function ProspectsPage() {
     }
   };
 
+  // Mettre à jour le statut du lead
   const handleUpdateStatus = async (leadId: string, status: OutreachStatus) => {
     try {
       await fetch("/api/prospects", {
@@ -105,12 +109,14 @@ export default function ProspectsPage() {
     }
   };
 
+  // Copier le pitch dans le presse-papier
   const handleCopyText = (text: string, type: "whatsapp" | "email") => {
     navigator.clipboard.writeText(text);
     setCopiedType(type);
     setTimeout(() => setCopiedType(null), 3000);
   };
 
+  // Ouvrir WhatsApp Web avec message pré-rempli
   const handleOpenWhatsApp = (lead: ProspectLead) => {
     const encoded = encodeURIComponent(lead.suggested_message_whatsapp);
     window.open(`https://wa.me/?text=${encoded}`, "_blank");
@@ -118,10 +124,12 @@ export default function ProspectsPage() {
   };
 
   const filteredLeads = leads.filter(l => filterStatus === "all" ? true : l.outreach_status === filterStatus);
+
   const totalEstimatedGains = leads.reduce((acc, l) => acc + l.estimated_gain_annual_mad, 0);
 
   return (
     <div className="space-y-6 lg:space-y-8 max-w-7xl mx-auto">
+      {/* Top Banner */}
       <div className="p-6 sm:p-8 rounded-card bg-gradient-to-r from-surface via-surface to-surface-elevated border border-emerald-500/30 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
 
@@ -141,6 +149,7 @@ export default function ProspectsPage() {
             </p>
           </div>
 
+          {/* Quick Metrics */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="px-4 py-3 rounded-xl bg-surface border border-surface-border text-center min-w-[130px]">
               <div className="text-[10px] text-muted-foreground uppercase font-bold">Leads Qualifiés</div>
@@ -154,6 +163,7 @@ export default function ProspectsPage() {
         </div>
       </div>
 
+      {/* Live Hunt Scanner Toolbar */}
       <div className="p-4 sm:p-5 rounded-card bg-surface border border-surface-border flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
@@ -180,6 +190,7 @@ export default function ProspectsPage() {
           </button>
         </div>
 
+        {/* Status Filter */}
         <div className="flex items-center gap-2 text-xs self-end md:self-auto">
           <Filter className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="text-muted-foreground">Statut :</span>
@@ -197,6 +208,7 @@ export default function ProspectsPage() {
         </div>
       </div>
 
+      {/* Leads Table / Card Grid */}
       {isLoading ? (
         <div className="p-12 text-center text-xs text-muted-foreground flex flex-col items-center gap-3">
           <RefreshCw className="w-6 h-6 text-primary animate-spin" />
@@ -216,6 +228,7 @@ export default function ProspectsPage() {
               className="p-5 rounded-card bg-surface border border-surface-border hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-4 shadow-lg group"
             >
               <div className="space-y-3">
+                {/* Header Badge */}
                 <div className="flex items-center justify-between gap-2">
                   <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
                     {lead.zone}
@@ -235,6 +248,7 @@ export default function ProspectsPage() {
                   </div>
                 </div>
 
+                {/* Title */}
                 <div>
                   <h3 className="font-serif text-sm font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
                     {lead.title}
@@ -250,6 +264,7 @@ export default function ProspectsPage() {
                   </div>
                 </div>
 
+                {/* Price & Gain Estimation */}
                 <div className="p-3 rounded-lg bg-surface-elevated/70 border border-surface-border space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">Tarif actuel :</span>
@@ -265,11 +280,13 @@ export default function ProspectsPage() {
                   </div>
                 </div>
 
+                {/* Audit Key Point */}
                 <p className="text-[11px] text-muted-foreground line-clamp-2 italic">
                   💡 {lead.audit_notes[0] || "Optimisation tarification dynamique et conciergerie 5 étoiles"}
                 </p>
               </div>
 
+              {/* Action Buttons */}
               <div className="pt-3 border-t border-surface-border flex items-center gap-2">
                 <button
                   onClick={() => setActiveModalLead(lead)}
@@ -294,9 +311,11 @@ export default function ProspectsPage() {
         </div>
       )}
 
+      {/* Outreach Modal */}
       {activeModalLead && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-2xl rounded-card bg-surface border border-surface-border shadow-2xl p-6 space-y-5 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
             <div className="flex items-start justify-between border-b border-surface-border pb-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -317,6 +336,7 @@ export default function ProspectsPage() {
               </button>
             </div>
 
+            {/* Status Switcher Bar */}
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <span className="text-muted-foreground font-semibold">Statut du prospect :</span>
               {(["nouveau", "contacte", "rendez_vous", "mandat_signe"] as OutreachStatus[]).map((st) => (
@@ -334,6 +354,7 @@ export default function ProspectsPage() {
               ))}
             </div>
 
+            {/* Outreach Pitch 1: WhatsApp */}
             <div className="space-y-2 p-4 rounded-xl bg-surface-elevated/70 border border-surface-border">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 font-bold text-xs text-foreground">
@@ -367,6 +388,7 @@ export default function ProspectsPage() {
               </div>
             </div>
 
+            {/* Outreach Pitch 2: Formal Email */}
             <div className="space-y-2 p-4 rounded-xl bg-surface-elevated/70 border border-surface-border">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 font-bold text-xs text-foreground">
@@ -390,6 +412,7 @@ export default function ProspectsPage() {
               />
             </div>
 
+            {/* Footer Sign-off Note */}
             <div className="text-[11px] text-muted-foreground flex items-center justify-between pt-2 border-t border-surface-border">
               <span>Signé par : <b>Hassan Tiguidda</b> (+212 6 32 15 54 30)</span>
               <a

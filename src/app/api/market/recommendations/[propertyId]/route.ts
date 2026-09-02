@@ -7,6 +7,7 @@ import { createServerClient } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
+// Benchmarks par défaut pour les quartiers clés de Marrakech
 const DEFAULT_BENCHMARKS: Record<string, MarketBenchmark> = {
   medina: {
     id: "bm-medina",
@@ -81,6 +82,8 @@ export async function GET(
 ) {
   try {
     const { propertyId } = await params;
+
+    // 1. Recherche du bien dans Supabase ou dans le catalogue local
     let property: Property | undefined;
     const supabase = await createServerClient();
 
@@ -94,12 +97,18 @@ export async function GET(
     }
 
     if (!property) {
-      property = MOCK_PROPERTIES.find(p => p.id === propertyId) || MOCK_PROPERTIES[0];
+      property = MOCK_PROPERTIES.find(p => p.id === propertyId);
+    }
+
+    if (!property) {
+      // Fallback sur le premier bien si ID non trouvé pour tester facilement
+      property = MOCK_PROPERTIES[0];
     }
 
     const zone = (property.quartier || "medina") as PropertyQuartier;
     const benchmark = DEFAULT_BENCHMARKS[zone] || DEFAULT_BENCHMARKS.medina;
 
+    // 2. Récupération des concurrents scrapés pour cette zone
     const competitors = await CompetitorScraperService.scrapeCompetitors({
       zone,
       propertyType: property.type,
@@ -107,6 +116,7 @@ export async function GET(
       limit: 5,
     });
 
+    // 3. Calcul de la recommandation de prix et prévisions 30 jours
     const recommendation = PricingEngine.calculateRecommendation({
       property,
       benchmark,
@@ -130,6 +140,7 @@ export async function GET(
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
+    console.error("[PricingAPI] Erreur de calcul de recommandation:", error);
     return NextResponse.json(
       {
         success: false,
