@@ -47,6 +47,7 @@ export const InlineMassOutreachDispatcher: React.FC<InlineMassOutreachDispatcher
   const [targetType, setTargetType] = useState<"appartement" | "studio" | "all">("appartement");
   const [onlyNew, setOnlyNew] = useState<boolean>(true);
   const [showLogsTable, setShowLogsTable] = useState<boolean>(true);
+  const [testEmailOverride, setTestEmailOverride] = useState<string>("");
 
   // Execution state
   const [isDispatching, setIsDispatching] = useState<boolean>(false);
@@ -125,8 +126,11 @@ export const InlineMassOutreachDispatcher: React.FC<InlineMassOutreachDispatcher
     setLiveLogs([]);
     setIsCompleted(false);
 
+    const overrideNotice = testEmailOverride.trim() 
+      ? ` | Mode Test Email Actif (${testEmailOverride.trim()})` 
+      : "";
     addLiveLog(`🚀 [Mass Regional Dispatcher] Démarrage de la campagne pour ${eligibleLeads.length} appartements...`, "info");
-    addLiveLog(`📡 Canal : ${selectedChannel} | Langue : ${lang} | Bouclier DNS MX Actif`, "info");
+    addLiveLog(`📡 Canal : ${selectedChannel} | Langue : ${lang} | Bouclier DNS MX Actif${overrideNotice}`, "info");
 
     const queue = [...eligibleLeads];
     let localSuccess = 0;
@@ -136,20 +140,41 @@ export const InlineMassOutreachDispatcher: React.FC<InlineMassOutreachDispatcher
       const lead = queue[i];
       const pitch = buildPitch(lead, lang);
 
-      const resolvedEmail = lead.owner_contact?.includes("@") 
+      // Résolution du contact email et téléphone
+      const overrideEmail = testEmailOverride.trim();
+      const rawLeadEmail = (lead.owner_contact?.includes("@") && !lead.owner_contact.includes("marrakech-concierge.ma")) 
         ? lead.owner_contact.trim() 
-        : `proprietaire.${lead.id.slice(-6)}@marrakech-concierge.ma`;
+        : null;
       
-      const cleanPhoneDigits = (lead.owner_contact || "0632155430").replace(/[^0-9]/g, "");
-      const finalPhone = cleanPhoneDigits.startsWith("0") ? "212" + cleanPhoneDigits.slice(1) : cleanPhoneDigits;
+      const targetEmail = overrideEmail || rawLeadEmail;
+      const hasVerifiedEmail = Boolean(targetEmail);
+
+      // Formatage propre du téléphone
+      const cleanPhoneDigits = (lead.owner_contact || "").replace(/[^0-9]/g, "");
+      let finalPhone = cleanPhoneDigits;
+      if (cleanPhoneDigits.startsWith("0")) {
+        finalPhone = "212" + cleanPhoneDigits.slice(1);
+      } else if (!cleanPhoneDigits.startsWith("212") && cleanPhoneDigits.length === 9) {
+        finalPhone = "212" + cleanPhoneDigits;
+      }
+      if (finalPhone.length < 10) {
+        finalPhone = "212632155430"; // Numéro de conciergerie par défaut
+      }
+
+      // Routage Multi-Canal Intelligent :
+      // - Si BOTH : Email (si dispo ou test override) + WhatsApp Direct
+      // - Si EMAIL : Email si dispo ou test override, SINON bascule automatique WhatsApp Direct (Zéro échec DNS/NXDOMAIN !)
+      // - Si WHATSAPP : WhatsApp Direct
+      const sendEmail = (selectedChannel === "EMAIL" || selectedChannel === "BOTH") && hasVerifiedEmail;
+      const sendWhatsApp = (selectedChannel === "WHATSAPP" || selectedChannel === "BOTH") || (!hasVerifiedEmail && selectedChannel === "EMAIL");
 
       try {
         let emailSuccess = false;
         let whatsappSuccess = false;
         let executionMessageId = `msg_${Date.now()}_${i}`;
 
-        // 1. Envoi par Email (si canal EMAIL ou BOTH)
-        if (selectedChannel === "EMAIL" || selectedChannel === "BOTH") {
+        // 1. Envoi par Email (uniquement si email réel vérifié ou override de test)
+        if (sendEmail && targetEmail) {
           const res = await fetch("/api/outreach", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -157,7 +182,7 @@ export const InlineMassOutreachDispatcher: React.FC<InlineMassOutreachDispatcher
               eventType: "EMAIL",
               recipient: {
                 name: lead.owner_name || "Propriétaire",
-                email: resolvedEmail,
+                email: targetEmail,
                 venueName: lead.title,
                 title: lead.title,
               },
@@ -173,7 +198,8 @@ export const InlineMassOutreachDispatcher: React.FC<InlineMassOutreachDispatcher
           if (res.ok && resData.success) {
             emailSuccess = true;
             executionMessageId = resData.messageId || executionMessageId;
-            addLiveLog(`✉️ [Gmail SMTP Pro] Email délivré à ${lead.title} (${resolvedEmail})`, "success");
+            const testLabel = overrideEmail ? " [Email de Test]" : "";
+            addLiveLog(`✉️ [Gmail SMTP Pro] Email délivré à ${lead.title} (${targetEmail})${testLabel}`, "success");
             
             recordOutreachLog({
               executionId: executionMessageId,
@@ -183,7 +209,7 @@ export const InlineMassOutreachDispatcher: React.FC<InlineMassOutreachDispatcher
                 leadId: lead.id,
                 title: lead.title,
                 zone: lead.zone,
-                email: resolvedEmail,
+                email: targetEmail,
               },
               subject: pitch.subject,
               status: "DELIVERED_REAL",
@@ -198,10 +224,13 @@ export const InlineMassOutreachDispatcher: React.FC<InlineMassOutreachDispatcher
           }
         }
 
-        // 2. Enregistrement WhatsApp Direct (si canal WHATSAPP ou BOTH)
-        if (selectedChannel === "WHATSAPP" || selectedChannel === "BOTH") {
+        // 2. Enregistrement WhatsApp Direct (si canal WHATSAPP/BOTH ou bascule auto sans email public)
+        if (sendWhatsApp) {
           whatsappSuccess = true;
-          addLiveLog(`💬 [WhatsApp] Pitch 1-clic préparé pour ${lead.title} (${finalPhone})`, "info");
+          const isFallback = !hasVerifiedEmail && selectedChannel === "EMAIL";
+          const fallbackNote = isFallback ? " (Routage auto : annonce sans email public)" : "";
+          
+          addLiveLog(`💬 [WhatsApp Direct] Pitch 1-clic préparé pour ${lead.title} (+${finalPhone})${fallbackNote}`, "info");
           
           recordOutreachLog({
             executionId: `wa_inline_${Date.now()}_${i}`,
@@ -247,13 +276,13 @@ export const InlineMassOutreachDispatcher: React.FC<InlineMassOutreachDispatcher
       setDispatchedCount(i + 1);
       setProgress(Math.round(((i + 1) / queue.length) * 100));
 
-      // Délai de précaution anti-flood (600ms)
-      await new Promise(r => setTimeout(r, 600));
+      // Délai de précaution anti-flood (500ms)
+      await new Promise(r => setTimeout(r, 500));
     }
 
     setIsDispatching(false);
     setIsCompleted(true);
-    addLiveLog(`🏁 Campagne terminée : ${localSuccess} délivrés avec succès sur ${queue.length} !`, "success");
+    addLiveLog(`🏁 Diffusion terminée avec succès ! (${localSuccess} délivrés, ${localFailed} échecs)`, "success");
     onTelemetryRefresh();
   };
 
@@ -403,6 +432,46 @@ export const InlineMassOutreachDispatcher: React.FC<InlineMassOutreachDispatcher
               Nouveaux leads ({eligibleLeads.length})
             </label>
           </div>
+        </div>
+      </div>
+
+      {/* Test Email Override / Direct Delivery Bar */}
+      <div className="p-3 rounded-xl bg-surface-elevated/70 border border-surface-border space-y-1.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <label className="text-[11px] font-bold text-foreground flex items-center gap-1.5">
+            <Mail className="w-3.5 h-3.5 text-sky-400" />
+            <span>Email de Test / Boîte de Réception Directe (Optionnel) :</span>
+          </label>
+          <span className="text-[10px] text-muted-foreground font-medium">
+            {testEmailOverride.trim() 
+              ? `✉️ Mode Test Actif : Les emails seront réexpédiés vers ${testEmailOverride.trim()}`
+              : "🛡️ Routage Multi-Canal Intelligent : WhatsApp direct 1-clic si l'annonce n'a pas d'email public"}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="email"
+            value={testEmailOverride}
+            onChange={(e) => setTestEmailOverride(e.target.value)}
+            placeholder="Ex: tiguidda76@gmail.com (Laissez vide pour le routage WhatsApp direct)"
+            className="flex-1 px-3 py-1.5 rounded-lg bg-surface border border-surface-border text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-emerald-500 font-mono"
+          />
+          <button
+            type="button"
+            onClick={() => setTestEmailOverride("tiguidda76@gmail.com")}
+            className="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all shrink-0 flex items-center gap-1"
+          >
+            <span>Remplir tiguidda76@gmail.com</span>
+          </button>
+          {testEmailOverride && (
+            <button
+              type="button"
+              onClick={() => setTestEmailOverride("")}
+              className="px-2.5 py-1.5 text-[11px] font-bold rounded-lg bg-surface text-muted-foreground border border-surface-border hover:text-foreground transition-all shrink-0"
+            >
+              Effacer
+            </button>
+          )}
         </div>
       </div>
 
