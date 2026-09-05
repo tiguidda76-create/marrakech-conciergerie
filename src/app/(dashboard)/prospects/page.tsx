@@ -37,6 +37,7 @@ import {
   getOutreachLogs,
   OutreachLogEntry
 } from "@/lib/outreachStorage";
+import { MassOutreachModal } from "@/components/modals/MassOutreachModal";
 
 const MARRAKECH_ZONES: { id: PropertyQuartier | "all"; label: string }[] = [
   { id: "gueliz", label: "🏢 Guéliz (Appartements, Studios & Penthouses — Focus)" },
@@ -56,6 +57,7 @@ export default function ProspectsPage() {
   const [filterType, setFilterType] = useState<string>("appartement");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [activeModalLead, setActiveModalLead] = useState<ProspectLead | null>(null);
+  const [isMassModalOpen, setIsMassModalOpen] = useState<boolean>(false);
   const [copiedType, setCopiedType] = useState<"whatsapp" | "email" | null>(null);
 
   // Outreach Modal States
@@ -385,16 +387,23 @@ export default function ProspectsPage() {
             </p>
           </div>
 
-          {/* Quick Metrics */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="px-4 py-3 rounded-xl bg-surface border border-surface-border text-center min-w-[130px]">
-              <div className="text-[10px] text-muted-foreground uppercase font-bold">Appartements Ciblés</div>
+          {/* Quick Metrics & Mass Outreach CTA */}
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <div className="px-4 py-3 rounded-xl bg-surface border border-surface-border text-center min-w-[120px]">
+              <div className="text-[10px] text-muted-foreground uppercase font-bold">Appartements</div>
               <div className="text-xl font-bold text-foreground">{filteredLeads.length}</div>
             </div>
-            <div className="px-4 py-3 rounded-xl bg-surface border border-emerald-500/20 text-center min-w-[150px]">
+            <div className="px-4 py-3 rounded-xl bg-surface border border-emerald-500/20 text-center min-w-[140px]">
               <div className="text-[10px] text-emerald-400 uppercase font-bold">Gain Détecté Total</div>
               <div className="text-xl font-bold text-emerald-400">+{formatMAD(totalEstimatedGains, false)}</div>
             </div>
+            <button
+              onClick={() => setIsMassModalOpen(true)}
+              className="px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-sky-600 hover:from-emerald-500 hover:to-sky-500 text-white font-bold text-xs flex items-center gap-2 shadow-xl shadow-emerald-600/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+            >
+              <Zap className="w-4 h-4 fill-white animate-pulse" />
+              <span>Mass Outreach ({filteredLeads.length})</span>
+            </button>
           </div>
         </div>
       </div>
@@ -499,6 +508,14 @@ export default function ProspectsPage() {
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? "animate-spin" : ""}`} />
             <span>{isScanning ? "Scan de Marrakech en cours..." : "Scanner le Marché en Direct"}</span>
+          </button>
+
+          <button
+            onClick={() => setIsMassModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-btn bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition-all shadow-md shadow-sky-600/25"
+          >
+            <Zap className="w-3.5 h-3.5 fill-white" />
+            <span>Mass Outreach Dispatcher</span>
           </button>
         </div>
 
@@ -855,6 +872,17 @@ export default function ProspectsPage() {
           </div>
         </div>
       )}
+
+      {/* Mass Outreach Dispatcher Modal */}
+      <MassOutreachModal
+        isOpen={isMassModalOpen}
+        onClose={() => setIsMassModalOpen(false)}
+        leads={leads}
+        onLeadUpdated={(leadId, status) => {
+          setLeads(prev => prev.map(l => l.id === leadId ? { ...l, outreach_status: status } : l));
+        }}
+        onTelemetryRefresh={refreshTelemetry}
+      />
     </div>
   );
 }
