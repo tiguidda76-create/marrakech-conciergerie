@@ -33,11 +33,12 @@ import { LEGAL_ENTITY } from "@/lib/constants";
 import { 
   recordOutreachLog, 
   getOutreachStats, 
-  purgeOutreachLogs,
+  purgeOutreachLogs, 
   getOutreachLogs,
   OutreachLogEntry
 } from "@/lib/outreachStorage";
 import { MassOutreachModal } from "@/components/modals/MassOutreachModal";
+import { InlineMassOutreachDispatcher } from "@/components/dashboard/InlineMassOutreachDispatcher";
 
 const MARRAKECH_ZONES: { id: PropertyQuartier | "all"; label: string }[] = [
   { id: "gueliz", label: "🏢 Guéliz (Appartements, Studios & Penthouses — Focus)" },
@@ -408,51 +409,12 @@ export default function ProspectsPage() {
         </div>
       </div>
 
-      {/* Outreach Live Telemetry Dashboard Widget */}
-      <div className="p-5 rounded-card bg-surface border border-surface-border shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-            <Activity className="w-4 h-4 animate-pulse" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-foreground uppercase tracking-wide">
-                Traçabilité &amp; Télémesure d'Envoi en Direct
-              </span>
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                Live
-              </span>
-            </div>
-            <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-3">
-              <span><b>{telemetry.totalSent}</b> Pitches déclenchés</span>
-              <span>•</span>
-              <span><b>{telemetry.delivered}</b> Délivrés ({telemetry.deliveryRate}%)</span>
-              <span>•</span>
-              <span><b>{telemetry.emailCount}</b> Emails Pro</span>
-              <span>•</span>
-              <span><b>{telemetry.whatsappCount}</b> WhatsApp Direct</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 self-end md:self-auto">
-          <button
-            onClick={refreshTelemetry}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-elevated hover:bg-surface-border text-xs text-foreground font-semibold border border-surface-border transition-colors"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Actualiser</span>
-          </button>
-          <button
-            onClick={handlePurgeLogs}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-xs text-rose-400 font-semibold border border-rose-500/20 transition-colors"
-            title="Purger l'historique d'envoi"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span>Purger</span>
-          </button>
-        </div>
-      </div>
+      {/* INLINE MASS OUTREACH DISPATCHER & LIVE TELEMETRY CONSOLE */}
+      <InlineMassOutreachDispatcher 
+        leads={leads}
+        onLeadUpdated={handleUpdateStatus}
+        onTelemetryRefresh={refreshTelemetry}
+      />
 
       {/* Typologies Switcher Toolbar */}
       <div className="p-3.5 sm:p-4 rounded-xl bg-surface border border-surface-border flex flex-wrap items-center justify-between gap-3 shadow-sm">
