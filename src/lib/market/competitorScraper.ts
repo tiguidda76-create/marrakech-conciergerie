@@ -174,85 +174,108 @@ export class CompetitorScraperService {
 
   /**
    * Génère des concurrents réalistes calibrés sur le marché réel de Marrakech
+   * Focus prioritaire : Appartements, Penthouses, Duplex & Studios à Guéliz, Hivernage et Majorelle
    */
   public static generateSyntheticCompetitors(params: ScrapeQueryParams): CompetitorListing[] {
+    const isApartmentFocus = !params.propertyType || ['appartement', 'studio', 'duplex'].includes(params.propertyType) || ['gueliz', 'hivernage'].includes(params.zone);
+
     const zonePrices: Record<PropertyQuartier, { base: number; spread: number }> = {
-      medina: { base: 2800, spread: 800 },
-      palmeraie: { base: 7500, spread: 2500 },
-      gueliz: { base: 1400, spread: 400 },
-      hivernage: { base: 2600, spread: 700 },
-      targa: { base: 1100, spread: 300 },
-      autre: { base: 1800, spread: 500 },
+      gueliz: { base: 1250, spread: 450 },       // Appartements modernes 800 - 1,700 MAD
+      hivernage: { base: 2100, spread: 600 },    // Penthouses & Duplex standing 1,500 - 2,700 MAD
+      medina: { base: 2600, spread: 800 },       // Riads traditionnels
+      palmeraie: { base: 7000, spread: 2500 },   // Grandes villas
+      targa: { base: 1200, spread: 350 },        // Appartements & villas calmes
+      autre: { base: 1350, spread: 400 },        // Agdal / Majorelle
     };
 
-    const zoneTitles: Record<PropertyQuartier, string[]> = {
-      medina: [
-        "Riad Authentique & Patio Piscine — Bab Doukkala",
-        "Riad d'Exception avec Rooftop Vue Atlas",
-        "Riad Luxe Privatisé & Personnel de Maison (Dar El Bacha)",
-        "Havre de Paix au Cœur des Souks avec Jacuzzi",
-      ],
-      palmeraie: [
-        "Villa Majestueuse 6 Chambres & Piscine Chauffée",
-        "Palais des Mille et Une Nuits — Parc 1 Hectare",
-        "Villa Contemporaine Oasis Palmeraie avec Court de Tennis",
-        "Domaine Privé Sécurisé avec Majordome & Cuisinière",
-      ],
+    const zoneTitles: Record<PropertyQuartier, Array<{ title: string; type: PropertyType; bedrooms: number }>> = {
       gueliz: [
-        "Appartement Standing Moderne plein centre Guéliz",
-        "Penthouse Lumineux avec Terrasse Panoramique Plaza",
-        "Appartement Art Déco rénové proche Carré Eden",
+        { title: "Appartement Moderne Design & Fibre 200M — Carré Eden", type: "appartement", bedrooms: 2 },
+        { title: "Penthouse Lumineux avec Solarium & Vue Dégagée — Victor Hugo", type: "duplex", bedrooms: 3 },
+        { title: "Appartement Chic avec Balcon Ensoleillé — Rue de la Liberté", type: "appartement", bedrooms: 2 },
+        { title: "Studio Exécutif Contemporain & Digicode — Avenue Mohammed V", type: "studio", bedrooms: 1 },
+        { title: "Appartement Épuré Haut Standing avec Parking — Semlalia", type: "appartement", bedrooms: 2 },
+        { title: "Grand Appartement 3 Chambres & Climatisation Réversible — Guéliz Centre", type: "appartement", bedrooms: 3 },
       ],
       hivernage: [
-        "Duplex Chic & Rooftop dans résidence de prestige",
-        "Appartement Terrasse Vue Jardins Hivernage",
-        "Suite de Luxe Hivernage proche grands hôtels",
+        { title: "Penthouse Prestige Vue Atlas & Jacuzzi — Cœur Hivernage", type: "duplex", bedrooms: 3 },
+        { title: "Appartement Terrasse Standing — Proche Casino & Hôtels de Luxe", type: "appartement", bedrooms: 2 },
+        { title: "Duplex Chic avec Rooftop & Piscine Résidence — Hivernage", type: "duplex", bedrooms: 3 },
+        { title: "Suite Appartement Rénovée & Calme Absolu — Avenue Echouhada", type: "appartement", bedrooms: 1 },
+        { title: "Appartement de Prestige Sécurisé 24/7 — Résidence Menara Hivernage", type: "appartement", bedrooms: 2 },
+      ],
+      medina: [
+        { title: "Riad Authentique & Patio Piscine — Bab Doukkala", type: "riad", bedrooms: 4 },
+        { title: "Riad d'Exception avec Rooftop Vue Atlas — Dar El Bacha", type: "riad", bedrooms: 5 },
+        { title: "Appartement Rénové Style Beldi — Portes de la Médina", type: "appartement", bedrooms: 2 },
+      ],
+      palmeraie: [
+        { title: "Villa Majestueuse 6 Chambres & Piscine Chauffée — Palmeraie", type: "villa", bedrooms: 6 },
+        { title: "Appartement Résidence Palmeraie avec Jardins & Piscine", type: "appartement", bedrooms: 2 },
       ],
       targa: [
-        "Villa Familiale avec Grand Jardin & Piscine",
-        "Appartement Cosy Résidence Sécurisée Targa",
+        { title: "Appartement Cosy Résidence Sécurisée & Piscine — Targa", type: "appartement", bedrooms: 2 },
+        { title: "Duplex Familial avec Terrasse Privative — Targa", type: "duplex", bedrooms: 3 },
       ],
       autre: [
-        "Villa Golf Resort Amelkis avec Vue Fairway",
-        "Riad de Charme Al Maaden Golf & Spa",
+        { title: "Appartement Standing avec Piscine — Résidence Agdal Boulevard Mohammed VI", type: "appartement", bedrooms: 2 },
+        { title: "Appartement Végétalisé & Lumineux — Allée des Palmiers Majorelle", type: "appartement", bedrooms: 2 },
+        { title: "Studio Moderne Proche Jardin Majorelle & Musée YSL", type: "studio", bedrooms: 1 },
       ],
     };
 
-    const count = params.limit || 5;
-    const cfg = zonePrices[params.zone] || zonePrices.medina;
-    const titles = zoneTitles[params.zone] || zoneTitles.medina;
+    const count = params.limit || 6;
+    const cfg = zonePrices[params.zone] || zonePrices.gueliz;
+    const items = zoneTitles[params.zone] || zoneTitles.gueliz;
     const now = new Date().toISOString();
 
     const results: CompetitorListing[] = [];
 
     for (let i = 0; i < count; i++) {
+      const template = items[i % items.length];
+      const targetType = params.propertyType || template.type || (isApartmentFocus ? "appartement" : "riad");
+      const targetBedrooms = params.bedrooms || template.bedrooms || (targetType === "studio" ? 1 : 2);
+
       const priceVariation = (Math.random() - 0.45) * cfg.spread;
-      const nightlyPrice = Math.round((cfg.base + priceVariation) / 50) * 50;
-      const rating = Number((4.75 + Math.random() * 0.24).toFixed(2));
-      const reviews = Math.floor(15 + Math.random() * 120);
-      const title = titles[i % titles.length] || `Logement d'exception ${params.zone}`;
+      const baseNightly = cfg.base + (targetBedrooms > 2 ? 350 : targetBedrooms === 1 ? -250 : 0);
+      const nightlyPrice = Math.round((baseNightly + priceVariation) / 50) * 50;
+      const rating = Number((4.74 + Math.random() * 0.25).toFixed(2));
+      const reviews = Math.floor(12 + Math.random() * 95);
+
+      // Équipements spécifiques appartements vs riads
+      const amenities = ['appartement', 'studio', 'duplex'].includes(targetType)
+        ? [
+            "Accès autonome 24/7 (Serrure connectée)",
+            "WiFi Fibre Optique 200M (Spécial télétravail)",
+            "Climatisation réversible split",
+            "Cuisine entièrement équipée & machine Nespresso",
+            "Parking privé sous-sol sécurisé",
+            "Lave-linge & fer à repasser pressing",
+            "Smart TV 55' avec Netflix / IPTV",
+          ]
+        : [
+            "Piscine privée chauffée",
+            "Climatisation réversible",
+            "WiFi Fibre Haut Débit",
+            "Ménage quotidien inclus",
+            "Personnel de maison & gardiennage",
+          ];
 
       results.push({
         id: `comp-syn-${params.zone}-${i + 1}`,
         external_id: `airbnb-${params.zone}-${1000 + i}`,
-        platform: i % 4 === 0 ? "booking" : "airbnb",
-        title: `${title} #${i + 1}`,
+        platform: i % 3 === 0 ? "booking" : "airbnb",
+        title: `${template.title} #${i + 1}`,
         zone: params.zone,
-        property_type: params.propertyType || "riad",
-        bedrooms: params.bedrooms || 3,
-        nightly_price: Math.max(400, nightlyPrice),
-        cleaning_fee: Math.round(nightlyPrice * 0.12),
+        property_type: targetType,
+        bedrooms: targetBedrooms,
+        nightly_price: Math.max(500, nightlyPrice),
+        cleaning_fee: Math.round(nightlyPrice * (['appartement', 'studio'].includes(targetType) ? 0.15 : 0.10)),
         rating: Math.min(5.0, rating),
         reviews_count: reviews,
         url: `https://www.airbnb.com/rooms/synthetic-${params.zone}-${i + 1}`,
-        is_superhost: Math.random() > 0.3,
-        amenities: [
-          "Piscine privée",
-          "Climatisation réversible",
-          "WiFi Fibre Haut Débit",
-          "Ménage quotidien inclus",
-          "Petit-déjeuner marocain",
-        ],
+        is_superhost: Math.random() > 0.4, // Beaucoup de particuliers non superhosts
+        amenities,
         scraped_at: now,
       });
     }

@@ -8,11 +8,12 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const zone: PropertyQuartier | "all" = body.zone || "all";
+    const zone: PropertyQuartier | "all" = body.zone || "gueliz";
+    const propertyType = body.property_type;
     const limit = Number(body.limit) || (zone === "all" ? 15 : 6);
 
-    // Scan en direct via Prospect Hunter (Multi-Zones ou Zone Ciblée)
-    const leads = await RealProspectHunterService.huntProspects(zone, limit);
+    // Scan en direct via Prospect Hunter (Multi-Zones ou Zone Ciblée, focus Appartements)
+    const leads = await RealProspectHunterService.huntProspects(zone, limit, propertyType);
 
     // Sauvegarde dans Supabase si connecté
     const supabase = await createServerClient();

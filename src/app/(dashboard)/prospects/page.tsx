@@ -39,19 +39,21 @@ import {
 } from "@/lib/outreachStorage";
 
 const MARRAKECH_ZONES: { id: PropertyQuartier | "all"; label: string }[] = [
-  { id: "all", label: "🌍 Tout Marrakech (Mass Prospection Multi-Zones)" },
+  { id: "gueliz", label: "🏢 Guéliz (Appartements, Studios & Penthouses — Focus)" },
+  { id: "hivernage", label: "🌟 Hivernage (Penthouses, Duplex & Résidences de Standing)" },
+  { id: "autre", label: "🌴 Majorelle & Agdal (Résidences avec Piscine & Balcons)" },
+  { id: "all", label: "🌍 Tout Marrakech (Multi-Zones avec Priorité Appartements)" },
   { id: "medina", label: "Médina (Riads & Maisons d'Hôtes)" },
+  { id: "targa", label: "Targa (Résidences & Villas Familiales)" },
   { id: "palmeraie", label: "Palmeraie (Villas & Domaines)" },
-  { id: "gueliz", label: "Guéliz (Appartements & Penthouses)" },
-  { id: "hivernage", label: "Hivernage (Duplex & Résidences Prestige)" },
-  { id: "targa", label: "Targa (Villas Familiales)" },
 ];
 
 export default function ProspectsPage() {
   const [leads, setLeads] = useState<ProspectLead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
-  const [selectedZone, setSelectedZone] = useState<PropertyQuartier | "all">("all");
+  const [selectedZone, setSelectedZone] = useState<PropertyQuartier | "all">("gueliz");
+  const [filterType, setFilterType] = useState<string>("appartement");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [activeModalLead, setActiveModalLead] = useState<ProspectLead | null>(null);
   const [copiedType, setCopiedType] = useState<"whatsapp" | "email" | null>(null);
@@ -82,7 +84,7 @@ export default function ProspectsPage() {
   useEffect(() => {
     fetchProspects();
     refreshTelemetry();
-  }, []);
+  }, [filterType, selectedZone]);
 
   // Update target contact inputs when active modal lead changes
   useEffect(() => {
@@ -98,7 +100,8 @@ export default function ProspectsPage() {
   const fetchProspects = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/prospects");
+      const typeParam = filterType === "all" ? "" : `&property_type=${filterType}`;
+      const res = await fetch(`/api/prospects?zone=${selectedZone}${typeParam}`);
       if (res.ok) {
         const data = await res.json();
         setLeads(data.leads || []);
@@ -117,7 +120,11 @@ export default function ProspectsPage() {
       const res = await fetch("/api/prospects/hunt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ zone: selectedZone, limit: selectedZone === "all" ? 15 : 6 }),
+        body: JSON.stringify({ 
+          zone: selectedZone, 
+          property_type: filterType === "all" ? undefined : filterType,
+          limit: selectedZone === "all" ? 18 : 8 
+        }),
       });
 
       if (res.ok) {
@@ -161,11 +168,20 @@ export default function ProspectsPage() {
     setTimeout(() => setCopiedType(null), 3000);
   };
 
-  // Générateur dynamique de pitch selon la langue sélectionnée
+  // Générateur dynamique de pitch ultra-performant et personnalisé selon le type de bien
   const getPitchContent = (lead: ProspectLead, lang: "FR" | "DARIJA" | "EN") => {
     const gainFormatted = lead.estimated_gain_annual_mad.toLocaleString("fr-FR");
+    const isApartment = ['appartement', 'studio', 'duplex'].includes(lead.property_type) || ['gueliz', 'hivernage'].includes(lead.zone);
+    const typeLabel = lead.property_type === 'studio' ? 'studio' : lead.property_type === 'duplex' ? 'duplex' : isApartment ? 'appartement' : 'bien';
 
     if (lang === "DARIJA") {
+      if (isApartment) {
+        return {
+          whatsapp: `Salam Si/Lalla 👋,\n\nM3ak Hassan Tiguidda men Marrakech Conciergerie Privée.\n\nCheft l'annonce dyal l-${typeLabel} dyalk "${lead.title}" f Marrakech (${lead.zone.toUpperCase()}).\nKhedemna audit rapide : n-qedrou n-tal3o lik l-rentabilité b ta9riban +${gainFormatted} MAD f l-3am b l-gestion spécial appartements bla ma t-sde3 rask :\n\n🔑 Check-in autonome b boîtier / serrure connectée 24/7 (bla ma t-tsena d-dyaf f noss lil)\n🏢 Sérénité Syndic : filtrage strict d-dyaf b la carte, caution, w zéro sda3 m3a l-voisins\n🧹 Ménage express f 3h & blanchisserie pressing hôtelière\n📈 Dynamic pricing : remplissage d l-appartement 7etta f l-iyamat d l-khdma (lundi-jeudi b les professionnels w digital nomads)\n⚖️ Fiches de police déclarées f l-waqt w virement d l-flouss kolla 1er f ch-her.\n\nCommission dyalna claire : 20% à 25% (100% au succès, 0 avance).\n\nN-qder n-sayfet lik l-audit complet f had l-WhatsApp ?\n\n📞 Tél : +212 6 32 15 54 30\nHassan Tiguidda`,
+          email: `Objet : Audit de rentabilité locative & Mandat de gestion — ${lead.title}\n\nSalam Si/Lalla,\n\nPropriétaire d'un ${typeLabel} de standing f Marrakech (${lead.title} - ${lead.zone.toUpperCase()}),\n\nMarrakech Conciergerie Privée kay-9eddem lik gestion intégrale sans tracas :\n• 📈 Dynamic Pricing : optimisation dyal tarif nuitée vers ${lead.estimated_adr.toLocaleString("fr-FR")} MAD (remplissage 88% garanti)\n• 🔑 Check-in autonome & serrure connectée 24/7\n• 🏢 Tranquillité syndic & respect dyal copropriété\n• 🧹 Ménage certifié 3 heures & blanchisserie hôtelière\n• ⚖️ Fiches de police obligatoires & virement mensuel net.\n\nGain annuel estimé : +${gainFormatted} MAD nets.\n\nDiscutons-en par retour d'email ou WhatsApp.\n\nHassan Tiguidda\nTél : ${LEGAL_ENTITY.phone}`
+        };
+      }
+
       return {
         whatsapp: `Salam Si/Lalla 👋,\n\nM3ak Hassan Tiguidda men Marrakech Conciergerie Privée.\n\nCheft l'annonce dyal l-propriété dyalk "${lead.title}" f Marrakech (${lead.zone.toUpperCase()}).\nKhedemna audit rapide : n-qedrou n-tal3o lik l-rentabilité b ta9riban +${gainFormatted} MAD f l-3am b l-gestion VIP dyalna (ménage 3h, check-in d-dyaf, l-khdma kamla bla ma t-sde3 rask).\n\nCommission dyalna claire : 25% 3la les réservations (100% au succès, 0 avance).\n\nN-qder n-sayfet lik l-audit complet f had l-WhatsApp ?\n\n📞 Tél : +212 6 32 15 54 30\nHassan Tiguidda`,
         email: `Objet : Audit de rentabilité locative & Partenariat conciergerie — ${lead.title}\n\nSalam Si/Lalla,\n\nPropriétaire dyal bien d'exception f Marrakech (${lead.title}),\n\nMarrakech Conciergerie Privée kay-9eddem lik gestion intégrale à 25% :\n• 📈 Dynamic Pricing : optimisation dyal tarif nuitée vers ${lead.estimated_adr.toLocaleString("fr-FR")} MAD\n• 🧹 Ménage 3 heures certifié & blanchisserie VIP\n• 🛎️ Accueil VIP, chauffeur & intendance complète\n\nGain annuel estimé : +${gainFormatted} MAD nets.\n\nDiscutons-en par retour d'email ou WhatsApp.\n\nHassan Tiguidda\nTél : ${LEGAL_ENTITY.phone}`
@@ -173,6 +189,13 @@ export default function ProspectsPage() {
     }
 
     if (lang === "EN") {
+      if (isApartment) {
+        return {
+          whatsapp: `Hello 👋,\n\nI am reaching out regarding your ${typeLabel} "${lead.title}" in Marrakech (${lead.zone.toUpperCase()}).\n\nOur market benchmarking reveals an untapped net revenue potential of +${gainFormatted} MAD/year through our hands-off apartment management:\n\n🔑 24/7 Smart Keyless Check-in (no airport waiting or late-night arrivals)\n🏢 HOA & Syndic Peace of Mind (strict guest screening, security deposits, zero disturbance)\n🧹 Professional 3-hour housekeeping turnaround & hotel linen\n📈 Dynamic pricing targeting business travelers & digital nomads on weekdays (88% target occupancy)\n⚖️ Full Moroccan police registration & guaranteed monthly net transfers.\n\nWe manage quality apartments in Guéliz & Hivernage at 20-25% performance fee (zero upfront cost).\n\nMay I share our quick property audit on WhatsApp?\n\nWarm regards,\nHassan Tiguidda\nFounder — Marrakech Conciergerie Privée\n📞 +212 6 32 15 54 30`,
+          email: `Subject: Rental Revenue Optimization & Hands-off Management — ${lead.title}\n\nDear Owner,\n\nAs the owner of a prime ${typeLabel} in Marrakech (${lead.title} - ${lead.zone.toUpperCase()}), you likely value maximized returns without the day-to-day hassles of late arrivals, express cleaning, or syndic compliance.\n\nMarrakech Conciergerie Privée specializes in turnkey apartment management:\n\n• 📈 Daily Dynamic Pricing: uplifting average rates from ${lead.nightly_price.toLocaleString("fr-FR")} MAD to ${lead.estimated_adr.toLocaleString("fr-FR")} MAD with a targeted 88% occupancy rate.\n• 🔑 24/7 Autonomous Keyless Access: seamless arrival via smart lock or code box.\n• 🏢 Syndic & Neighbor Tranquility: rigorous guest ID verification and zero tolerance for noise.\n• 🧹 3-Hour Rapid Turnover: professional hotel-grade laundry and hospitality restock.\n• ⚖️ Full Regulatory Compliance: police registrations, tourist tax handling, and direct monthly net wire transfers.\n\nEstimated additional net profit: +${gainFormatted} MAD/year.\n\nWe would be pleased to schedule a short call or on-site meeting to share our data.\n\nRespectfully,\n\nHassan Tiguidda\nDirector — Marrakech Conciergerie Privée\nPhone / WhatsApp: ${LEGAL_ENTITY.phone}\nEmail: ${LEGAL_ENTITY.email}`
+        };
+      }
+
       return {
         whatsapp: `Hello,\n\nI am contacting you regarding your property "${lead.title}" in Marrakech (${lead.zone.toUpperCase()}).\n\nOur market analysis shows an estimated revenue upside of +${gainFormatted} MAD/year through our VIP short-term rental management (3-hour turnover, dynamic pricing, concierge hosting, full legal compliance).\n\nWe operate on a 25% performance commission (zero upfront cost).\n\nMay I send you our complimentary property audit via WhatsApp or email?\n\nWarm regards,\nHassan Tiguidda — Marrakech Private Concierge\nPhone/WhatsApp: +212 6 32 15 54 30`,
         email: `Subject: Rental Revenue Audit & Concierge Partnership — ${lead.title}\n\nDear Owner,\n\nRegarding your prestigious property in Marrakech (${lead.title} - ${lead.zone.toUpperCase()}), our private concierge firm provides turnkey short-term rental management at a 25% performance fee:\n\n• 📈 Real-time Dynamic Pricing: elevating base rates from ${lead.nightly_price.toLocaleString("fr-FR")} MAD towards ~${lead.estimated_adr.toLocaleString("fr-FR")} MAD.\n• 🧹 Certified 3-hour housekeeping & luxury linen.\n• 🛎️ Tailored VIP guest hosting, airport transfers, and private cooks.\n• ⚖️ Full Moroccan regulatory compliance.\n\nEstimated additional net revenue: +${gainFormatted} MAD/year.\n\nWe would be delighted to discuss this opportunity at your convenience.\n\nRespectfully yours,\n\nHassan Tiguidda\nDirector — Marrakech Conciergerie Privée\nPhone / WhatsApp: ${LEGAL_ENTITY.phone}\nEmail: ${LEGAL_ENTITY.email}`
@@ -180,6 +203,13 @@ export default function ProspectsPage() {
     }
 
     // Default: FR
+    if (isApartment) {
+      return {
+        whatsapp: `Bonjour 👋,\n\nJe me permets de vous contacter au sujet de votre ${typeLabel} "${lead.title}" à Marrakech (${lead.zone.toUpperCase()}).\n\nEn analysant les performances locatives de votre secteur, votre bien présente un potentiel exceptionnel : vous pourriez dégager un gain additionnel net estimé à +${gainFormatted} MAD/an tout en vous libérant à 100% des contraintes du quotidien :\n\n🔑 Accès autonome 24/7 (boîtier / serrure connectée, zéro attente voyageur tardif)\n🏢 Sérénité Syndic & Copropriété (filtrage strict d'identité, caution systématique, zéro fête ni nuisance sonore)\n🧹 Rotation ménage express sous 3h & blanchisserie pressing hôtelière\n📈 Tarification dynamique (remplissage à 88% en captant les voyageurs business et nomades digitaux en semaine)\n⚖️ Déclaration des fiches de police obligatoires & virement bancaire net chaque 1er du mois.\n\nNous gérons déjà un portefeuille d'appartements et penthouses à ${lead.zone === "gueliz" ? "Guéliz" : lead.zone === "hivernage" ? "l'Hivernage" : "Marrakech"} avec une commission claire de 20% à 25% (100% au succès, 0 avance requise).\n\nPuis-je vous transmettre notre audit chiffré complet sans engagement ?\n\nBien cordialement,\nHassan Tiguidda\nFondateur — Marrakech Conciergerie Privée\n📞 +212 6 32 15 54 30\nICE: ${LEGAL_ENTITY.ice}`,
+        email: `Objet : Audit de rentabilité locative & Mandat de gestion — ${lead.title}\n\nMadame, Monsieur,\n\nPropriétaire d'un ${typeLabel} de standing à Marrakech (${lead.title} - Secteur ${lead.zone.toUpperCase()}), vous visez légitimement une rentabilité maximale sans les contraintes quotidiennes de gestion (attente des clés à minuit, rotation ménage le jour même, relations avec le syndic de copropriété).\n\nNotre cabinet Marrakech Conciergerie Privée est spécialisé dans la gestion intégrale d'appartements, penthouses et duplex à Marrakech avec une commission à la performance de 20% à 25% :\n\n• 📈 Tarification Dynamique Quotidienne : passage de votre tarif actuel de ${lead.nightly_price.toLocaleString("fr-FR")} MAD vers ~${lead.estimated_adr.toLocaleString("fr-FR")} MAD et un taux d'occupation cible de 88% en captant une clientèle d'affaires et de digital nomads du lundi au jeudi.\n• 🔑 Check-in Autonome Sécurisé 24/7 : installation de serrures connectées ou boîtiers sécurisés pour des arrivées 100% fluides sans déranger le propriétaire.\n• 🏢 Sérénité Totale Vis-à-vis du Syndic : vérification systématique des pièces d'identité, caution bancaire bloquée et tolérance zéro pour les nuisances sonores.\n• 🧹 Rotation Ménage Hôtelier sous 3 Heures : draps blancs satinés repassés en pressing hôtelier et réassort complet des kits d'accueil (café Nespresso, produits de bain).\n• ⚖️ Conformité Réglementaire & Sécurité : enregistrement obligatoire des fiches de police, déclaration de la taxe de séjour (11 MAD) et virement bancaire net chaque début de mois avec relevé transparent.\n\nGain annuel supplémentaire estimé pour votre ${typeLabel} : +${gainFormatted} MAD nets.\n\nJe serais ravi de vous présenter notre audit complet ainsi que nos réalisations sur le secteur lors d'un rendez-vous sur place ou par téléphone.\n\nBien respectueusement,\n\nHassan Tiguidda\nDirecteur — Marrakech Conciergerie Privée\nAdresse : ${LEGAL_ENTITY.address}\nMobile / WhatsApp : ${LEGAL_ENTITY.phone}\nEmail : ${LEGAL_ENTITY.email}\nIdentifiant Fiscal / ICE : ${LEGAL_ENTITY.ice}`
+      };
+    }
+
     return {
       whatsapp: `Bonjour 👋,\n\nJe me permets de vous contacter au sujet de votre bien "${lead.title}" à Marrakech (${lead.zone.toUpperCase()}).\n\nAprès analyse de votre secteur, votre propriété présente un potentiel exceptionnel : avec notre conciergerie privée et notre tarification dynamique, vous pourriez dégager un gain additionnel estimé à +${gainFormatted} MAD/an tout en déléguant 100% de l'intendance (ménage 3h, check-in VIP, linge de luxe, déclarations légales).\n\nNous intervenons sur Marrakech avec une commission claire de 25% (100% au succès, 0 avance requise).\n\nPuis-je vous transmettre notre audit complet sans engagement ?\n\nBien cordialement,\nHassan Tiguidda\nFondateur — Marrakech Conciergerie Privée\n📞 +212 6 32 15 54 30\nICE: ${LEGAL_ENTITY.ice}`,
       email: `Objet : Audit de rentabilité locative & Partenariat conciergerie — ${lead.title}\n\nMadame, Monsieur,\n\nPropriétaire d'un bien d'exception à Marrakech (${lead.title} - Quartier ${lead.zone.toUpperCase()}), vous visez légitimement une rentabilité maximale combinée à une préservation irréprochable de votre patrimoine.\n\nNotre cabinet Marrakech Conciergerie Privée accompagne les propriétaires de Riads et Villas haut de gamme à travers un mandat de gestion intégrale à 25% :\n\n• 📈 Dynamic Pricing en temps réel : optimisation de votre tarif nuitée de ${lead.nightly_price.toLocaleString("fr-FR")} MAD vers un potentiel de ${lead.estimated_adr.toLocaleString("fr-FR")} MAD selon la saisonnalité.\n• 🧹 Rotation ménage certifiée 3 heures & blanchisserie hôtelière.\n• 🛎️ Accueil VIP sur mesure, majordome, cuisinière et chauffeur.\n• ⚖️ Conformité légale totale (enregistrement passeports, taxe de séjour 11 MAD) et virement bancaire net chaque 1er du mois.\n\nGain annuel supplémentaire estimé pour votre propriété : +${gainFormatted} MAD nets.\n\nJe serais ravi de vous présenter notre audit complet lors d'un rendez-vous sur place ou par téléphone.\n\nBien respectueusement,\n\nHassan Tiguidda\nDirecteur — Marrakech Conciergerie Privée\nAdresse : ${LEGAL_ENTITY.address}\nMobile / WhatsApp : ${LEGAL_ENTITY.phone}\nEmail : ${LEGAL_ENTITY.email}\nIdentifiant Fiscal / ICE : ${LEGAL_ENTITY.ice}`
@@ -317,8 +347,16 @@ export default function ProspectsPage() {
     }
   };
 
-  const filteredLeads = leads.filter(l => filterStatus === "all" ? true : l.outreach_status === filterStatus);
-  const totalEstimatedGains = leads.reduce((acc, l) => acc + l.estimated_gain_annual_mad, 0);
+  const filteredLeads = leads.filter(l => {
+    const matchesStatus = filterStatus === "all" ? true : l.outreach_status === filterStatus;
+    const matchesType = filterType === "all" 
+      ? true 
+      : filterType === "appartement" 
+      ? ["appartement", "duplex", "studio"].includes(l.property_type) 
+      : l.property_type === filterType;
+    return matchesStatus && matchesType;
+  });
+  const totalEstimatedGains = filteredLeads.reduce((acc, l) => acc + l.estimated_gain_annual_mad, 0);
 
   return (
     <div className="space-y-6 lg:space-y-8 max-w-7xl mx-auto">
@@ -328,27 +366,30 @@ export default function ProspectsPage() {
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
                 <Target className="w-3.5 h-3.5" /> Agent Prospect Hunter Live
               </span>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/20 text-primary border border-primary/30">
+                🏢 Focus Appartements &amp; Penthouses 🇲🇦
+              </span>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/15 text-sky-400 border border-sky-500/30">
-                Gmail SMTP Pro & WhatsApp Live 🇲🇦
+                Gmail SMTP Pro &amp; WhatsApp Live
               </span>
             </div>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">
-              Chasse Immobilière &amp; Outreach Propriétaires
+              Chasse Immobilière &amp; Prospection Appartements Marrakech
             </h1>
             <p className="text-xs text-muted-foreground max-w-2xl leading-relaxed">
-              Détectez en direct les Riads et Villas sous-exploités à Marrakech. Générez instantanément des audits de rentabilité et contactez les propriétaires en direct par Email Pro (relais Gmail) ou WhatsApp.
+              Détectez en direct les appartements, studios et penthouses sous-exploités à <b>Guéliz</b>, <b>Hivernage</b>, <b>Majorelle</b> et <b>Agdal</b>. Générez des audits de rentabilité intégrant <b>accès autonome 24/7</b>, <b>sérénité syndic</b> et <b>remplissage business en semaine (88%)</b>. Contactez les propriétaires en 1 clic.
             </p>
           </div>
 
           {/* Quick Metrics */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="px-4 py-3 rounded-xl bg-surface border border-surface-border text-center min-w-[130px]">
-              <div className="text-[10px] text-muted-foreground uppercase font-bold">Leads Qualifiés</div>
-              <div className="text-xl font-bold text-foreground">{leads.length}</div>
+              <div className="text-[10px] text-muted-foreground uppercase font-bold">Appartements Ciblés</div>
+              <div className="text-xl font-bold text-foreground">{filteredLeads.length}</div>
             </div>
             <div className="px-4 py-3 rounded-xl bg-surface border border-emerald-500/20 text-center min-w-[150px]">
               <div className="text-[10px] text-emerald-400 uppercase font-bold">Gain Détecté Total</div>
@@ -401,6 +442,36 @@ export default function ProspectsPage() {
             <Trash2 className="w-3.5 h-3.5" />
             <span>Purger</span>
           </button>
+        </div>
+      </div>
+
+      {/* Typologies Switcher Toolbar */}
+      <div className="p-3.5 sm:p-4 rounded-xl bg-surface border border-surface-border flex flex-wrap items-center justify-between gap-3 shadow-sm">
+        <div className="flex items-center gap-2">
+          <Building2 className="w-4 h-4 text-emerald-400" />
+          <span className="text-xs font-bold text-foreground">Typologie Immobilière :</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {[
+            { id: "appartement", label: "🏢 Appartements & Penthouses (Prioritaire)" },
+            { id: "studio", label: "🔑 Studios & 2P (Digital Nomads)" },
+            { id: "duplex", label: "🌆 Duplex & Penthouses Rooftop" },
+            { id: "all", label: "🌍 Tous les biens" },
+            { id: "riad", label: "🏰 Riads" },
+            { id: "villa", label: "🏡 Villas" },
+          ].map((typeItem) => (
+            <button
+              key={typeItem.id}
+              onClick={() => setFilterType(typeItem.id)}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all border ${
+                filterType === typeItem.id
+                  ? "bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-600/25"
+                  : "bg-surface-elevated text-muted-foreground border-surface-border hover:text-foreground hover:border-emerald-500/30"
+              }`}
+            >
+              {typeItem.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -458,8 +529,8 @@ export default function ProspectsPage() {
       ) : filteredLeads.length === 0 ? (
         <div className="p-12 text-center rounded-card bg-surface border border-surface-border space-y-3">
           <Target className="w-8 h-8 text-primary mx-auto opacity-50" />
-          <p className="text-sm font-semibold text-foreground">Aucun lead trouvé dans ce filtre</p>
-          <p className="text-xs text-muted-foreground">Cliquez sur &quot;Scanner le Marché en Direct&quot; pour détecter des annonces à Marrakech.</p>
+          <p className="text-sm font-semibold text-foreground">Aucun appartement trouvé dans ce filtre</p>
+          <p className="text-xs text-muted-foreground">Cliquez sur &quot;Scanner le Marché en Direct&quot; pour détecter des annonces d&apos;appartements à Marrakech.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -508,6 +579,21 @@ export default function ProspectsPage() {
                       {lead.rating} ({lead.reviews_count})
                     </span>
                   </div>
+
+                  {/* Apartment Value Proposition Badges */}
+                  {['appartement', 'studio', 'duplex'].includes(lead.property_type) && (
+                    <div className="flex flex-wrap gap-1.5 pt-2">
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        🔑 Accès Autonome 24/7
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                        🏢 Sérénité Syndic
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        📈 Taux 88%
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Financial Metrics */}

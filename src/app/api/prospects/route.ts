@@ -4,22 +4,32 @@ import { createServerClient } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const zone = (searchParams.get("zone") as any) || "gueliz";
+    const propertyType = (searchParams.get("property_type") as any) || "appartement";
+
     const supabase = await createServerClient();
     if (supabase) {
-      const { data, error } = await supabase
+      let query = supabase
         .from("prospect_leads")
         .select("*")
         .order("opportunity_score", { ascending: false });
+
+      if (propertyType && propertyType !== "all") {
+        query = query.eq("property_type", propertyType);
+      }
+
+      const { data, error } = await query;
 
       if (!error && data && data.length > 0) {
         return NextResponse.json({ success: true, count: data.length, leads: data });
       }
     }
 
-    // Fallback scan initial si table vide
-    const initialLeads = await RealProspectHunterService.huntProspects("medina", 6);
+    // Fallback scan initial : Focus Appartements & Penthouses (Guéliz)
+    const initialLeads = await RealProspectHunterService.huntProspects(zone, 8, propertyType);
     return NextResponse.json({ success: true, count: initialLeads.length, leads: initialLeads });
   } catch (error) {
     return NextResponse.json(
