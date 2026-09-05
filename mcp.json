@@ -1,0 +1,44 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres"],
+      "env": {
+        "POSTGRES_URL": "postgresql://postgres:[PASSWORD]@db.[PROJECT].supabase.co:5432/postgres"
+      }
+    },
+    "notion": {
+      "command": "npx",
+      "args": ["-y", "@suekou/mcp-notion-server"],
+      "env": {
+        "NOTION_API_TOKEN": "secret_xxxxxxxx",
+        "NOTION_DATABASE_ID": "xxxxxxxx"
+      }
+    },
+    "firecrawl": {
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": {
+        "FIRECRAWL_API_KEY": "fc-xxxxxxxx"
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "env": {
+        "CONTEXT7_API_KEY": "upstash_xxxxxxxx"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_xxxxxxxx"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "c:/Users/hp/.gemini/Marrakech Concierge"]
+    }
+  }
+}
