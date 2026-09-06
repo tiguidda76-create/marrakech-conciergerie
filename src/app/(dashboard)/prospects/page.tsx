@@ -54,6 +54,9 @@ export default function ProspectsPage() {
   const [leads, setLeads] = useState<ProspectLead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
+  const [scanLimit, setScanLimit] = useState<number>(200);
+  const [isHarvesting, setIsHarvesting] = useState<boolean>(false);
+  const [harvestProgress, setHarvestProgress] = useState<{ currentBatch: number; totalBatches: number; totalHarvested: number } | null>(null);
   const [selectedZone, setSelectedZone] = useState<PropertyQuartier | "all">("gueliz");
   const [filterType, setFilterType] = useState<string>("appartement");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -116,9 +119,10 @@ export default function ProspectsPage() {
     }
   };
 
-  // Lancer un scan en direct avec Prospect Hunter
-  const handleRunLiveHunt = async () => {
+  // Lancer un scan en direct avec Prospect Hunter (avec support volume personnalisable jusqu'à 1000)
+  const handleRunLiveHunt = async (overrideLimit?: number) => {
     setIsScanning(true);
+    const countToScan = overrideLimit || scanLimit;
     try {
       const res = await fetch("/api/prospects/hunt", {
         method: "POST",
@@ -126,7 +130,7 @@ export default function ProspectsPage() {
         body: JSON.stringify({ 
           zone: selectedZone, 
           property_type: filterType === "all" ? undefined : filterType,
-          limit: selectedZone === "all" ? 18 : 8 
+          limit: countToScan
         }),
       });
 
@@ -144,6 +148,49 @@ export default function ProspectsPage() {
       console.error("Erreur scan prospection:", e);
     } finally {
       setIsScanning(false);
+    }
+  };
+
+  // Récolte Massive (Harvest 5000) — 5 vagues successives de 1000 leads par quartier
+  const handleHarvestMassif = async () => {
+    setIsHarvesting(true);
+    setHarvestProgress({ currentBatch: 1, totalBatches: 5, totalHarvested: 0 });
+    let totalAdded = 0;
+
+    try {
+      const zonesList: (PropertyQuartier | "all")[] = ["gueliz", "hivernage", "autre", "medina", "all"];
+      for (let batch = 1; batch <= 5; batch++) {
+        setHarvestProgress({ currentBatch: batch, totalBatches: 5, totalHarvested: totalAdded });
+        const targetZone = zonesList[(batch - 1) % zonesList.length];
+        
+        const res = await fetch("/api/prospects/hunt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            zone: targetZone, 
+            property_type: filterType === "all" ? undefined : filterType,
+            limit: 1000 
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.leads && data.leads.length > 0) {
+            setLeads(prev => {
+              const existingUrls = new Set(prev.map(p => p.url));
+              const newOnes = data.leads.filter((l: ProspectLead) => !existingUrls.has(l.url));
+              totalAdded += newOnes.length;
+              return [...newOnes, ...prev];
+            });
+          }
+        }
+        await new Promise(r => setTimeout(r, 400));
+      }
+    } catch (err) {
+      console.error("Erreur lors de la récolte massive:", err);
+    } finally {
+      setIsHarvesting(false);
+      setTimeout(() => setHarvestProgress(null), 5000);
     }
   };
 
@@ -446,57 +493,108 @@ export default function ProspectsPage() {
         </div>
       </div>
 
-      {/* Live Hunt Scanner Toolbar */}
-      <div className="p-4 sm:p-5 rounded-card bg-surface border border-surface-border flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
-            <Search className="w-4 h-4 text-primary" />
-            <span>Zone cible :</span>
+      {/* Live Hunt Scanner Toolbar & Massive Volume Selector */}
+      <div className="p-4 sm:p-5 rounded-card bg-surface border border-surface-border flex flex-col gap-4 shadow-lg">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+              <Search className="w-4 h-4 text-primary" />
+              <span>Zone cible :</span>
+            </div>
+            <select
+              value={selectedZone}
+              onChange={(e) => setSelectedZone(e.target.value as PropertyQuartier)}
+              className="bg-surface-elevated border border-surface-border rounded-lg px-3 py-2 text-xs font-semibold text-foreground focus:outline-none focus:border-primary cursor-pointer"
+            >
+              {MARRAKECH_ZONES.map(z => (
+                <option key={z.id} value={z.id}>{z.label}</option>
+              ))}
+            </select>
+
+            {/* Volume Selector Buttons */}
+            <div className="flex items-center gap-1.5 bg-surface-elevated p-1 rounded-lg border border-surface-border">
+              <span className="text-[11px] font-bold text-muted-foreground px-2">Volume :</span>
+              {[50, 200, 500, 1000].map((vol) => (
+                <button
+                  key={vol}
+                  onClick={() => setScanLimit(vol)}
+                  className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                    scanLimit === vol
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-surface"
+                  }`}
+                >
+                  {vol}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => handleRunLiveHunt()}
+              disabled={isScanning || isHarvesting}
+              className="flex items-center gap-2 px-4 py-2 rounded-btn bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-600/25 disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? "animate-spin" : ""}`} />
+              <span>{isScanning ? `Scan (${scanLimit} biens)...` : `Scanner (${scanLimit} Biens)`}</span>
+            </button>
+
+            {/* Harvest 5000 Massif Button */}
+            <button
+              onClick={handleHarvestMassif}
+              disabled={isScanning || isHarvesting}
+              className="flex items-center gap-2 px-4 py-2 rounded-btn bg-gradient-to-r from-amber-600 via-orange-500 to-emerald-600 hover:from-amber-500 hover:to-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-amber-600/25 disabled:opacity-50"
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${isHarvesting ? "animate-spin" : "animate-pulse text-amber-200"}`} />
+              <span>{isHarvesting ? "Récolte 5 000 en cours..." : "⚡ Récolte Massive (5 000 Biens)"}</span>
+            </button>
+
+            <button
+              onClick={() => setIsMassModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-btn bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition-all shadow-md shadow-sky-600/25"
+            >
+              <Zap className="w-3.5 h-3.5 fill-white" />
+              <span>Mass Outreach</span>
+            </button>
           </div>
-          <select
-            value={selectedZone}
-            onChange={(e) => setSelectedZone(e.target.value as PropertyQuartier)}
-            className="bg-surface-elevated border border-surface-border rounded-lg px-3 py-2 text-xs font-semibold text-foreground focus:outline-none focus:border-primary cursor-pointer"
-          >
-            {MARRAKECH_ZONES.map(z => (
-              <option key={z.id} value={z.id}>{z.label}</option>
-            ))}
-          </select>
 
-          <button
-            onClick={handleRunLiveHunt}
-            disabled={isScanning}
-            className="flex items-center gap-2 px-4 py-2 rounded-btn bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-600/25 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? "animate-spin" : ""}`} />
-            <span>{isScanning ? "Scan de Marrakech en cours..." : "Scanner le Marché en Direct"}</span>
-          </button>
-
-          <button
-            onClick={() => setIsMassModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-btn bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition-all shadow-md shadow-sky-600/25"
-          >
-            <Zap className="w-3.5 h-3.5 fill-white" />
-            <span>Mass Outreach Dispatcher</span>
-          </button>
+          {/* Status Filter */}
+          <div className="flex items-center gap-2 text-xs self-end lg:self-auto">
+            <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="text-muted-foreground">Statut :</span>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="bg-surface-elevated border border-surface-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary"
+            >
+              <option value="all">Tous ({leads.length})</option>
+              <option value="nouveau">Nouveaux</option>
+              <option value="contacte">Contactés</option>
+              <option value="rendez_vous">RDV Fixés</option>
+              <option value="mandat_signe">Mandats Signés</option>
+            </select>
+          </div>
         </div>
 
-        {/* Status Filter */}
-        <div className="flex items-center gap-2 text-xs self-end md:self-auto">
-          <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="text-muted-foreground">Statut :</span>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="bg-surface-elevated border border-surface-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary"
-          >
-            <option value="all">Tous ({leads.length})</option>
-            <option value="nouveau">Nouveaux</option>
-            <option value="contacte">Contactés</option>
-            <option value="rendez_vous">RDV Fixés</option>
-            <option value="mandat_signe">Mandats Signés</option>
-          </select>
-        </div>
+        {/* Live Harvest Progress Bar */}
+        {harvestProgress && (
+          <div className="p-3 rounded-lg bg-surface-elevated border border-amber-500/30 flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs font-semibold">
+              <span className="text-amber-400 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                Vague {harvestProgress.currentBatch}/{harvestProgress.totalBatches} en cours d&apos;extraction...
+              </span>
+              <span className="text-emerald-400 font-bold">
+                +{harvestProgress.totalHarvested} biens découverts &amp; qualifiés
+              </span>
+            </div>
+            <div className="w-full bg-surface-border rounded-full h-2 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-amber-500 to-emerald-500 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${(harvestProgress.currentBatch / harvestProgress.totalBatches) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Leads Table / Card Grid */}

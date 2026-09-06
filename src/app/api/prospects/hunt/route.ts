@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const zone: PropertyQuartier | "all" = body.zone || "gueliz";
     const propertyType = body.property_type;
-    const limit = Number(body.limit) || (zone === "all" ? 15 : 6);
+    const limit = Math.min(1000, Math.max(1, Number(body.limit) || (zone === "all" ? 200 : 100)));
 
     // Scan en direct via Prospect Hunter (Multi-Zones ou Zone Ciblée, focus Appartements)
     const leads = await RealProspectHunterService.huntProspects(zone, limit, propertyType);
