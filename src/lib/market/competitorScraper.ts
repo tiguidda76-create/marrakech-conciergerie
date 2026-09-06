@@ -7,7 +7,7 @@ import { CompetitorListing, PropertyQuartier, PropertyType } from "@/types";
 
 export interface ScrapeQueryParams {
   zone: PropertyQuartier;
-  propertyType?: PropertyType;
+  propertyType?: PropertyType | "all";
   bedrooms?: number;
   checkIn?: string; // YYYY-MM-DD
   checkOut?: string; // YYYY-MM-DD
