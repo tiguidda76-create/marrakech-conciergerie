@@ -142,7 +142,7 @@ export class CompetitorScraperService {
         platform: "airbnb",
         title: item.title,
         zone: params.zone,
-        property_type: params.propertyType || "riad",
+        property_type: (params.propertyType && params.propertyType !== "all") ? params.propertyType : "riad",
         bedrooms: params.bedrooms || 3,
         nightly_price: Math.max(300, Math.round(item.price_per_night_mad || 1500)),
         cleaning_fee: Math.round(item.cleaning_fee_mad || 350),
@@ -310,7 +310,7 @@ export class CompetitorScraperService {
       const locality = localities[(i * 3 + Math.floor(i / rootPool.length)) % localities.length];
       const modifier = MODIFIERS[(i * 7 + Math.floor(i / 11)) % MODIFIERS.length];
 
-      const targetType = params.propertyType && params.propertyType !== 'all' 
+      const targetType: PropertyType = (params.propertyType && params.propertyType !== 'all') 
         ? params.propertyType 
         : root.type;
 
